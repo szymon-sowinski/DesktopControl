@@ -112,7 +112,10 @@ namespace DesktopControl
                     catch { }
                 }));
             }
-
+            foreach (var komputer in komputery)
+            {
+                Console.WriteLine($"IP: {komputer.IP}, MAC: {komputer.MAC}, Host: {komputer.Hostname}, Online: {komputer.Onl}");
+            }
             await Task.WhenAll(tasks);
 
 
