@@ -105,7 +105,8 @@
                     Foreground="White"
                     Padding="8"
                     Margin="5"
-                    BorderThickness="0"/>
+                    BorderThickness="0" Click="WykryjKomputery"
+					/>
 
 			<Button x:Name="BtnLoadFromFile"
                     Content="Dodaj z pliku"

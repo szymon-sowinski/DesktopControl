@@ -1,4 +1,9 @@
-﻿using System.Text;
+﻿using System.Collections.ObjectModel;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -8,44 +13,107 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-
+using System.Threading.Tasks;
 namespace DesktopControl
 {
-	public class Computer
-	{
-		public bool IsSelected { get; set; }
-		public string Mac { get; set; }
-		public string Ip { get; set; }
-		public string Error { get; set; }
-	}
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
 	/// </summary>
 	public partial class MainWindow : Window
 	{
-		public MainWindow()
+        [DllImport("iphlpapi.dll", ExactSpelling = true)]
+        public static extern int SendARP(int destIp, int srcIp, byte[] macAddr, ref int physicalAddrLen);
+        ObservableCollection<Komputer> komputery = new ObservableCollection<Komputer>();
+        private string GetLocalIPAddress()
+        {
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+
+            foreach (var ip in host.AddressList)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    return ip.ToString();
+                }
+            }
+
+            throw new Exception("Brak IP");
+        }
+        private string GetHostName(string ip)
+        {
+            try
+            {
+                var host = Dns.GetHostEntry(ip);
+                return host.HostName;
+            }
+            catch
+            {
+                return "Unknown";
+            }
+        }
+        private string GetMacAddress(string ip)
+        {
+            try
+            {
+                byte[] macAddr = new byte[6];
+                int length = macAddr.Length;
+
+                int dest = BitConverter.ToInt32(IPAddress.Parse(ip).GetAddressBytes(), 0);
+
+                SendARP(dest, 0, macAddr, ref length);
+
+                string mac = BitConverter.ToString(macAddr);
+                return mac;
+            }
+            catch
+            {
+                return "Unknown";
+            }
+        }
+        public MainWindow()
 		{
 			InitializeComponent();
-
-			var computers = new List<Computer>
-			{
-				new Computer
-				{
-					IsSelected = false,
-					Mac = "00:1A:2B:3C:4D:5E",
-					Ip = "192.168.0.255",
-					Error = "OK"
-				},
-				new Computer
-				{
-					IsSelected = true,
-					Mac = "AA:BB:CC:DD:EE:FF",
-					Ip = "192.168.0.255",
-					Error = "Offline"
-				}
-			};
-
-			ComputersGrid.ItemsSource = computers;
 		}
-	}
+
+        private async void WykryjKomputery(object sender, RoutedEventArgs e)
+        {
+            komputery.Clear();
+            string localIP = GetLocalIPAddress();
+            string subnet = localIP.Substring(0, localIP.LastIndexOf('.') + 1);
+            List<Task> tasks = new List<Task>();
+            for (int i = 1; i < 255; i++)
+            {
+                string ip = subnet + i;
+
+                tasks.Add(Task.Run(async () =>
+                {
+                    try
+                    {
+                        Ping ping = new Ping();
+                        PingReply reply = await ping.SendPingAsync(ip, 200);
+
+                        if (reply.Status == IPStatus.Success)
+                        {
+                            string hostname = GetHostName(ip);
+                            string mac = GetMacAddress(ip);
+
+                            Application.Current.Dispatcher.Invoke(() =>
+                            {
+                                komputery.Add(new Komputer(
+                                    ip,
+                                    mac,
+                                    hostname,
+                                    true,
+                                    DateTime.Now
+                                ));
+                            });
+                        }
+                    }
+                    catch { }
+                }));
+            }
+
+            await Task.WhenAll(tasks);
+
+        }
+    }
 }
