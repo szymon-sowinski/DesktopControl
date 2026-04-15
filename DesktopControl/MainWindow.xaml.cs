@@ -1,117 +1,169 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace DesktopControl
 {
-    public partial class MainWindow : Window
-    {
-        [DllImport("iphlpapi.dll", ExactSpelling = true)]
-        public static extern int SendARP(int destIp, int srcIp, byte[] macAddr, ref int physicalAddrLen);
+	// Zmieniłem nazwę na DeviceItem, żeby uniknąć błędu niejednoznaczności (Ambiguity)
+	public class DeviceItem : INotifyPropertyChanged
+	{
+		public string IP { get; set; } = string.Empty;
+		public string MAC { get; set; } = string.Empty;
+		public string Hostname { get; set; } = string.Empty;
+		public bool IsSelected { get; set; }
+		public bool Onl { get; set; }
 
-        public ObservableCollection<Komputer> Komputery { get; set; } = new ObservableCollection<Komputer>();
+		private string _error = "Gotowy";
+		public string Error
+		{
+			get => _error;
+			set { _error = value; OnPropertyChanged(nameof(Error)); }
+		}
 
-        public MainWindow()
-        {
-            InitializeComponent();
-            DataContext = this;
-        }
+		public DeviceItem(string ip, string mac, string hostname, bool online)
+		{
+			IP = ip;
+			MAC = mac;
+			Hostname = hostname;
+			Onl = online;
+		}
 
-        private string GetLocalIPAddress()
-        {
-            var host = Dns.GetHostEntry(Dns.GetHostName());
+		public event PropertyChangedEventHandler? PropertyChanged;
+		protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+	}
 
-            foreach (var ip in host.AddressList)
-            {
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
-                    return ip.ToString();
-            }
+	public partial class MainWindow : Window
+	{
+		[DllImport("iphlpapi.dll", ExactSpelling = true)]
+		public static extern int SendARP(int destIp, int srcIp, byte[] macAddr, ref int physicalAddrLen);
 
-            throw new Exception("Brak IP");
-        }
+		// Używamy nowej nazwy klasy DeviceItem
+		public ObservableCollection<DeviceItem> Komputery { get; set; } = new ObservableCollection<DeviceItem>();
 
-        private string GetHostName(string ip)
-        {
-            try { return Dns.GetHostEntry(ip).HostName; }
-            catch { return "Unknown"; }
-        }
+		public MainWindow()
+		{
+			InitializeComponent();
+			this.DataContext = this;
+			ComputersGrid.ItemsSource = Komputery;
+		}
 
-        private string GetMacAddress(string ip)
-        {
-            try
-            {
-                byte[] macAddr = new byte[6];
-                int len = macAddr.Length;
+		private async void BtnPowerOff_Click(object sender, RoutedEventArgs e)
+		{
+			var button = sender as Button;
+			var device = button?.DataContext as DeviceItem;
 
-                int dest = BitConverter.ToInt32(IPAddress.Parse(ip).GetAddressBytes(), 0);
+			if (device == null) return;
 
-                SendARP(dest, 0, macAddr, ref len);
+			var confirm = MessageBox.Show($"Czy na pewno wyłączyć {device.IP}?", "Potwierdzenie", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+			if (confirm != MessageBoxResult.Yes) return;
 
-                return BitConverter.ToString(macAddr);
-            }
-            catch
-            {
-                return "Unknown";
-            }
-        }
+			device.Error = "Zamykanie...";
 
-        private async void WykryjKomputery(object sender, RoutedEventArgs e)
-        {
-            Komputery.Clear();
+			try
+			{
+				await Task.Run(() =>
+				{
+					ProcessStartInfo psi = new ProcessStartInfo
+					{
+						FileName = "shutdown",
+						Arguments = $"/m \\\\{device.IP} /s /f /t 0",
+						CreateNoWindow = true,
+						UseShellExecute = false,
+						RedirectStandardError = true
+					};
 
-            string localIP = GetLocalIPAddress();
-            string subnet = localIP.Substring(0, localIP.LastIndexOf('.') + 1);
+					using (Process? proc = Process.Start(psi))
+					{
+						if (proc != null)
+						{
+							string stdError = proc.StandardError.ReadToEnd();
+							proc.WaitForExit();
 
-            List<Task> tasks = new List<Task>();
-            object lockObj = new object();
-            HashSet<string> found = new HashSet<string>();
+							Dispatcher.Invoke(() =>
+							{
+								if (proc.ExitCode == 0)
+									device.Error = "Wysłano sygnał.";
+								else
+									device.Error = $"Błąd: {stdError.Trim()}";
+							});
+						}
+					}
+				});
+			}
+			catch (Exception ex)
+			{
+				device.Error = $"Wyjątek: {ex.Message}";
+			}
+		}
 
-            for (int i = 1; i < 255; i++)
-            {
-                string ip = subnet + i;
+		private string GetLocalIPAddress()
+		{
+			try
+			{
+				var host = Dns.GetHostEntry(Dns.GetHostName());
+				foreach (var ip in host.AddressList)
+					if (ip.AddressFamily == AddressFamily.InterNetwork) return ip.ToString();
+			}
+			catch { }
+			return "127.0.0.1";
+		}
 
-                tasks.Add(Task.Run(async () =>
-                {
-                    try
-                    {
-                        using (Ping ping = new Ping())
-                        {
-                            var reply = await ping.SendPingAsync(ip, 200);
+		private string GetHostName(string ip)
+		{
+			try { return Dns.GetHostEntry(ip).HostName; }
+			catch { return "Unknown"; }
+		}
 
-                            if (reply.Status == IPStatus.Success)
-                            {
-                                lock (lockObj)
-                                {
-                                    if (!found.Add(ip))
-                                        return;
-                                }
+		private string GetMacAddress(string ip)
+		{
+			try
+			{
+				byte[] macAddr = new byte[6];
+				int len = macAddr.Length;
+				int dest = BitConverter.ToInt32(IPAddress.Parse(ip).GetAddressBytes(), 0);
+				SendARP(dest, 0, macAddr, ref len);
+				return BitConverter.ToString(macAddr);
+			}
+			catch { return "Unknown"; }
+		}
 
-                                var komputer = new Komputer(
-                                    ip,
-                                    GetMacAddress(ip),
-                                    GetHostName(ip),
-                                    true,
-                                    DateTime.Now
-                                );
+		private async void WykryjKomputery(object sender, RoutedEventArgs e)
+		{
+			Komputery.Clear();
+			string localIP = GetLocalIPAddress();
+			string subnet = localIP.Substring(0, localIP.LastIndexOf('.') + 1);
+			List<Task> tasks = new List<Task>();
 
-                                Dispatcher.Invoke(() =>
-                                {
-                                    Komputery.Add(komputer);
-                                });
-                            }
-                        }
-                    }
-                    catch { }
-                }));
-            }
-
-            await Task.WhenAll(tasks);
-        }
-    }
+			for (int i = 1; i < 255; i++)
+			{
+				string ip = subnet + i;
+				tasks.Add(Task.Run(async () =>
+				{
+					using (Ping ping = new Ping())
+					{
+						try
+						{
+							var reply = await ping.SendPingAsync(ip, 150);
+							if (reply.Status == IPStatus.Success)
+							{
+								var k = new DeviceItem(ip, GetMacAddress(ip), GetHostName(ip), true);
+								Dispatcher.Invoke(() => Komputery.Add(k));
+							}
+						}
+						catch { }
+					}
+				}));
+			}
+			await Task.WhenAll(tasks);
+		}
+	}
 }
