@@ -10,14 +10,12 @@
 			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
 
-		<!-- HEADER -->
 		<TextBlock Text="💻 Desktop Control"
                    FontSize="28"
                    Foreground="White"
                    FontWeight="Bold"
                    Margin="10"/>
 
-		<!-- LISTA KOMPUTERÓW -->
 		<Border Grid.Row="1" Background="#2a2a40" CornerRadius="10" Padding="10">
 			<DataGrid x:Name="ComputersGrid"
                       AutoGenerateColumns="False"
@@ -26,7 +24,9 @@
                       GridLinesVisibility="None"
                       RowBackground="#2a2a40"
                       AlternatingRowBackground="#33334d"
-                      BorderThickness="0">
+                      BorderThickness="0"
+                      HeadersVisibility="Column"
+                      SelectionMode="Extended">
 
 				<DataGrid.Resources>
 					<Style TargetType="DataGridColumnHeader">
@@ -34,47 +34,55 @@
 						<Setter Property="Foreground" Value="White"/>
 						<Setter Property="FontWeight" Value="Bold"/>
 						<Setter Property="HorizontalContentAlignment" Value="Center"/>
-						<Setter Property="BorderBrush" Value="#1e1e2f"/>
-						<Setter Property="BorderThickness" Value="0,0,1,1"/>
 						<Setter Property="Padding" Value="8"/>
+					</Style>
+
+					<Style TargetType="DataGridCell">
+						<Setter Property="BorderThickness" Value="0"/>
+						<Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+						<Style.Triggers>
+							<Trigger Property="IsSelected" Value="True">
+								<Setter Property="Background" Value="Transparent"/>
+								<Setter Property="Foreground" Value="White"/>
+							</Trigger>
+						</Style.Triggers>
 					</Style>
 				</DataGrid.Resources>
 
 				<DataGrid.Columns>
 
-					<!-- CHECKBOX -->
 					<DataGridTemplateColumn Width="50">
 						<DataGridTemplateColumn.CellTemplate>
 							<DataTemplate>
-								<CheckBox IsChecked="{Binding IsSelected}"/>
+								<CheckBox IsChecked="{Binding IsSelected}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 							</DataTemplate>
 						</DataGridTemplateColumn.CellTemplate>
 					</DataGridTemplateColumn>
 
-					<!-- MAC -->
-					<DataGridTextColumn Header="MAC Address" Binding="{Binding Mac}" Width="200"/>
+					<DataGridTextColumn Header="MAC Address" Binding="{Binding Mac}" Width="200" IsReadOnly="True"/>
 
-					<!-- IP -->
-					<DataGridTextColumn Header="Broadcast IP" Binding="{Binding Ip}" Width="200"/>
+					<DataGridTextColumn Header="Broadcast IP" Binding="{Binding Ip}" Width="200" IsReadOnly="True"/>
 
-					<!-- PRZYCISKI -->
 					<DataGridTemplateColumn Header="Akcje" Width="300">
 						<DataGridTemplateColumn.CellTemplate>
 							<DataTemplate>
-								<StackPanel Orientation="Horizontal">
-									<Button Content="Włącz" Background="#4CAF50" Foreground="White" Padding="5" Margin="0,0,5,0"/>
-									<Button Content="Wyłącz" Background="#F44336" Foreground="White" Padding="5" Margin="0,0,5,0"/>
-									<Button Content="Podgląd" Background="#2196F3" Foreground="White" Padding="5"/>
+								<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+									<Button Content="Włącz" Background="#4CAF50" Foreground="White" Padding="8,3" Margin="0,0,5,0"/>
+									<Button Content="Wyłącz" Background="#F44336" Foreground="White" Padding="8,3" Margin="0,0,5,0"/>
+									<Button Content="Podgląd" Background="#2196F3" Foreground="White" Padding="8,3"/>
 								</StackPanel>
 							</DataTemplate>
 						</DataGridTemplateColumn.CellTemplate>
 					</DataGridTemplateColumn>
 
-					<!-- BŁĘDY -->
 					<DataGridTemplateColumn Header="Status / Błąd" Width="*">
 						<DataGridTemplateColumn.CellTemplate>
 							<DataTemplate>
-								<TextBox Text="{Binding Error}" Background="#1e1e2f" Foreground="White" BorderThickness="0"/>
+								<TextBlock Text="{Binding Error}"
+                                           Foreground="#ff5555"
+                                           VerticalAlignment="Center"
+                                           Margin="5,0"
+                                           TextWrapping="Wrap"/>
 							</DataTemplate>
 						</DataGridTemplateColumn.CellTemplate>
 					</DataGridTemplateColumn>
@@ -83,13 +91,10 @@
 			</DataGrid>
 		</Border>
 
-		<!-- DOLNY PANEL -->
 		<StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
-
 			<Button Content="Zaznacz wszystko" Width="150" Background="#555" Foreground="White" Padding="8" Margin="5"/>
 			<Button Content="Włącz wszystkie" Width="150" Background="#4CAF50" Foreground="White" Padding="8" Margin="5"/>
 			<Button Content="Wyłącz wszystkie" Width="150" Background="#F44336" Foreground="White" Padding="8" Margin="5"/>
-
 		</StackPanel>
 
 	</Grid>
