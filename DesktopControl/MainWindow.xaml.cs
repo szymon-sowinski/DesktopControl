@@ -77,6 +77,7 @@ namespace DesktopControl
 
         private async void WykryjKomputery(object sender, RoutedEventArgs e)
         {
+            MessageBox.Show("Wykrywanie komputerów w sieci. Proszę czekać...", "Wykrywanie");
             komputery.Clear();
             string localIP = GetLocalIPAddress();
             string subnet = localIP.Substring(0, localIP.LastIndexOf('.') + 1);
@@ -112,10 +113,18 @@ namespace DesktopControl
                     catch { }
                 }));
             }
+            StringBuilder sb = new StringBuilder();
+
             foreach (var komputer in komputery)
             {
-                Console.WriteLine($"IP: {komputer.IP}, MAC: {komputer.MAC}, Host: {komputer.Hostname}, Online: {komputer.Onl}");
+                sb.AppendLine($"IP: {komputer.IP}");
+                sb.AppendLine($"MAC: {komputer.MAC}");
+                sb.AppendLine($"Host: {komputer.Hostname}");
+                sb.AppendLine($"Online: {komputer.Onl}");
+                sb.AppendLine("----------------------");
             }
+
+            MessageBox.Show(sb.ToString(), "Wykryte komputery");
             await Task.WhenAll(tasks);
 
 
