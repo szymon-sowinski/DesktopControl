@@ -20,7 +20,7 @@
 		<Border x:Name="GridContainer" Grid.Row="1" Background="#2a2a40" CornerRadius="10" Padding="10">
 			<DataGrid x:Name="ComputersGrid"
                       AutoGenerateColumns="False"
-					  ItemsSource="{Binding Komputery}"
+					  ItemsSource="{Binding komputery}"
                       Background="#2a2a40"
                       Foreground="White"
                       GridLinesVisibility="None"
