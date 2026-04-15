@@ -15,7 +15,7 @@ namespace DesktopControl
         [DllImport("iphlpapi.dll", ExactSpelling = true)]
         public static extern int SendARP(int destIp, int srcIp, byte[] macAddr, ref int physicalAddrLen);
 
-        public ObservableCollection<Komputer> komputery { get; set; }
+        public ObservableCollection<Komputer> Komputery { get; set; }
             = new ObservableCollection<Komputer>();
 
         public MainWindow()
@@ -28,7 +28,7 @@ namespace DesktopControl
         {
             MessageBox.Show("Wykrywanie komputerów...");
 
-            komputery.Clear();
+            Komputery.Clear();
 
             string localIP = GetLocalIPAddress();
             string subnet = localIP.Substring(0, localIP.LastIndexOf('.') + 1);
@@ -53,7 +53,7 @@ namespace DesktopControl
 
                             Application.Current.Dispatcher.Invoke(() =>
                             {
-                                komputery.Add(new Komputer(
+                                Komputery.Add(new Komputer(
                                     ip,
                                     mac,
                                     hostname,
@@ -68,7 +68,7 @@ namespace DesktopControl
                     {
                         Application.Current.Dispatcher.Invoke(() =>
                         {
-                            komputery.Add(new Komputer(
+                            Komputery.Add(new Komputer(
                                 ip,
                                 "Unknown",
                                 "Unknown",
@@ -82,8 +82,15 @@ namespace DesktopControl
             }
 
             await Task.WhenAll(tasks);
-
-            MessageBox.Show($"Znaleziono: {komputery.Count}");
+            Komputery.Add(new Komputer(
+                "111.111.111.1.111",
+                "idk",
+                "idk",
+                false,
+                DateTime.Now,
+                "idk"
+                ));
+            MessageBox.Show($"Znaleziono: {Komputery.Count}");
         }
 
         private string GetLocalIPAddress()
