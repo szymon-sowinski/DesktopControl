@@ -1,12 +1,96 @@
 ﻿<Window x:Class="DesktopControl.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:DesktopControl"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="Desktop Control" Height="600" Width="1000" Background="#1e1e2f">
 
-    </Grid>
+	<Grid Margin="10">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="Auto"/>
+		</Grid.RowDefinitions>
+
+		<!-- HEADER -->
+		<TextBlock Text="💻 Desktop Control"
+                   FontSize="28"
+                   Foreground="White"
+                   FontWeight="Bold"
+                   Margin="10"/>
+
+		<!-- LISTA KOMPUTERÓW -->
+		<Border Grid.Row="1" Background="#2a2a40" CornerRadius="10" Padding="10">
+			<DataGrid x:Name="ComputersGrid"
+                      AutoGenerateColumns="False"
+                      Background="#2a2a40"
+                      Foreground="White"
+                      GridLinesVisibility="None"
+                      RowBackground="#2a2a40"
+                      AlternatingRowBackground="#33334d"
+                      BorderThickness="0">
+
+				<DataGrid.Resources>
+					<Style TargetType="DataGridColumnHeader">
+						<Setter Property="Background" Value="#000000"/>
+						<Setter Property="Foreground" Value="White"/>
+						<Setter Property="FontWeight" Value="Bold"/>
+						<Setter Property="HorizontalContentAlignment" Value="Center"/>
+						<Setter Property="BorderBrush" Value="#1e1e2f"/>
+						<Setter Property="BorderThickness" Value="0,0,1,1"/>
+						<Setter Property="Padding" Value="8"/>
+					</Style>
+				</DataGrid.Resources>
+
+				<DataGrid.Columns>
+
+					<!-- CHECKBOX -->
+					<DataGridTemplateColumn Width="50">
+						<DataGridTemplateColumn.CellTemplate>
+							<DataTemplate>
+								<CheckBox IsChecked="{Binding IsSelected}"/>
+							</DataTemplate>
+						</DataGridTemplateColumn.CellTemplate>
+					</DataGridTemplateColumn>
+
+					<!-- MAC -->
+					<DataGridTextColumn Header="MAC Address" Binding="{Binding Mac}" Width="200"/>
+
+					<!-- IP -->
+					<DataGridTextColumn Header="Broadcast IP" Binding="{Binding Ip}" Width="200"/>
+
+					<!-- PRZYCISKI -->
+					<DataGridTemplateColumn Header="Akcje" Width="300">
+						<DataGridTemplateColumn.CellTemplate>
+							<DataTemplate>
+								<StackPanel Orientation="Horizontal">
+									<Button Content="Włącz" Background="#4CAF50" Foreground="White" Padding="5" Margin="0,0,5,0"/>
+									<Button Content="Wyłącz" Background="#F44336" Foreground="White" Padding="5" Margin="0,0,5,0"/>
+									<Button Content="Podgląd" Background="#2196F3" Foreground="White" Padding="5"/>
+								</StackPanel>
+							</DataTemplate>
+						</DataGridTemplateColumn.CellTemplate>
+					</DataGridTemplateColumn>
+
+					<!-- BŁĘDY -->
+					<DataGridTemplateColumn Header="Status / Błąd" Width="*">
+						<DataGridTemplateColumn.CellTemplate>
+							<DataTemplate>
+								<TextBox Text="{Binding Error}" Background="#1e1e2f" Foreground="White" BorderThickness="0"/>
+							</DataTemplate>
+						</DataGridTemplateColumn.CellTemplate>
+					</DataGridTemplateColumn>
+
+				</DataGrid.Columns>
+			</DataGrid>
+		</Border>
+
+		<!-- DOLNY PANEL -->
+		<StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
+
+			<Button Content="Zaznacz wszystko" Width="150" Background="#555" Foreground="White" Padding="8" Margin="5"/>
+			<Button Content="Włącz wszystkie" Width="150" Background="#4CAF50" Foreground="White" Padding="8" Margin="5"/>
+			<Button Content="Wyłącz wszystkie" Width="150" Background="#F44336" Foreground="White" Padding="8" Margin="5"/>
+
+		</StackPanel>
+
+	</Grid>
 </Window>
