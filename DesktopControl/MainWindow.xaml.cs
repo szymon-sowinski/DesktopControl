@@ -3,10 +3,10 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Windows;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Threading;
+using System.Windows;
 
 namespace DesktopControl
 {
@@ -22,29 +22,43 @@ namespace DesktopControl
         {
             InitializeComponent();
             DataContext = this;
+
+            // 🔥 test czy binding działa
+            Komputery.Add(new Komputer("TEST", "AA-BB-CC", "LOCAL", true, DateTime.Now, ""));
         }
 
         private async void WykryjKomputery(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Wykrywanie komputerów...");
+            MessageBox.Show("Skanowanie sieci...");
 
+            await ScanNetwork();
+
+            MessageBox.Show($"Znaleziono: {Komputery.Count}");
+        }
+
+        private async Task ScanNetwork()
+        {
             Komputery.Clear();
 
             string localIP = GetLocalIPAddress();
             string subnet = localIP.Substring(0, localIP.LastIndexOf('.') + 1);
 
+            SemaphoreSlim semaphore = new SemaphoreSlim(50); // 🔥 limit równoległości
             List<Task> tasks = new List<Task>();
 
             for (int i = 1; i < 255; i++)
             {
                 string ip = subnet + i;
 
+                await semaphore.WaitAsync();
+
                 tasks.Add(Task.Run(async () =>
                 {
                     try
                     {
                         using Ping ping = new Ping();
-                        var reply = await ping.SendPingAsync(ip, 200);
+
+                        var reply = await ping.SendPingAsync(ip, 800);
 
                         if (reply.Status == IPStatus.Success)
                         {
@@ -78,19 +92,14 @@ namespace DesktopControl
                             ));
                         });
                     }
+                    finally
+                    {
+                        semaphore.Release();
+                    }
                 }));
             }
 
             await Task.WhenAll(tasks);
-            Komputery.Add(new Komputer(
-                "111.111.111.1.111",
-                "idk",
-                "idk",
-                false,
-                DateTime.Now,
-                "idk"
-                ));
-            MessageBox.Show($"Znaleziono: {Komputery.Count}");
         }
 
         private string GetLocalIPAddress()
@@ -98,10 +107,8 @@ namespace DesktopControl
             var host = Dns.GetHostEntry(Dns.GetHostName());
 
             foreach (var ip in host.AddressList)
-            {
                 if (ip.AddressFamily == AddressFamily.InterNetwork)
                     return ip.ToString();
-            }
 
             throw new Exception("Brak IP");
         }
@@ -122,15 +129,15 @@ namespace DesktopControl
         {
             try
             {
-                byte[] macAddr = new byte[6];
-                int len = macAddr.Length;
+                byte[] mac = new byte[6];
+                int len = mac.Length;
 
                 int dest = BitConverter.ToInt32(
                     IPAddress.Parse(ip).GetAddressBytes(), 0);
 
-                SendARP(dest, 0, macAddr, ref len);
+                SendARP(dest, 0, mac, ref len);
 
-                return BitConverter.ToString(macAddr);
+                return BitConverter.ToString(mac);
             }
             catch
             {
