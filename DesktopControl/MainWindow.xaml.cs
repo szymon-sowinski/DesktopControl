@@ -72,7 +72,8 @@ namespace DesktopControl
         public MainWindow()
 		{
 			InitializeComponent();
-		}
+            DataContext = this;
+        }
 
         private async void WykryjKomputery(object sender, RoutedEventArgs e)
         {
@@ -113,6 +114,7 @@ namespace DesktopControl
             }
 
             await Task.WhenAll(tasks);
+
 
         }
     }
