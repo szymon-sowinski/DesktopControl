@@ -3,24 +3,31 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Desktop Control" Height="650" Width="1100" Background="#1e1e2f">
 
-	<Grid x:Name="MainGrid" Margin="10">
-		<Grid.RowDefinitions>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="*"/>
-			<RowDefinition Height="Auto"/>
-		</Grid.RowDefinitions>
+    <Grid x:Name="MainGrid" Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
-		<TextBlock x:Name="HeaderTitle"
+        <!-- HEADER -->
+        <TextBlock x:Name="HeaderTitle"
                    Text="💻 Desktop Control"
                    FontSize="28"
                    Foreground="White"
                    FontWeight="Bold"
                    Margin="10"/>
 
-		<Border x:Name="GridContainer" Grid.Row="1" Background="#2a2a40" CornerRadius="10" Padding="10">
-			<DataGrid x:Name="ComputersGrid"
+        <!-- DATA GRID -->
+        <Border x:Name="GridContainer"
+                Grid.Row="1"
+                Background="#2a2a40"
+                CornerRadius="10"
+                Padding="10">
+
+            <DataGrid x:Name="ComputersGrid"
                       AutoGenerateColumns="False"
-					  ItemsSource="{Binding Komputery}"
+                      ItemsSource="{Binding Komputery}"
                       Background="#2a2a40"
                       Foreground="White"
                       GridLinesVisibility="None"
@@ -30,86 +37,131 @@
                       HeadersVisibility="Column"
                       SelectionMode="Extended">
 
-				<DataGrid.Resources>
-					<Style TargetType="DataGridColumnHeader">
-						<Setter Property="Background" Value="#000000"/>
-						<Setter Property="Foreground" Value="White"/>
-						<Setter Property="FontWeight" Value="Bold"/>
-						<Setter Property="HorizontalContentAlignment" Value="Center"/>
-						<Setter Property="Padding" Value="8"/>
-					</Style>
+                <DataGrid.Resources>
 
-					<Style TargetType="DataGridCell">
-						<Setter Property="BorderThickness" Value="0"/>
-						<Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-						<Style.Triggers>
-							<Trigger Property="IsSelected" Value="True">
-								<Setter Property="Background" Value="Transparent"/>
-								<Setter Property="Foreground" Value="White"/>
-							</Trigger>
-						</Style.Triggers>
-					</Style>
-				</DataGrid.Resources>
+                    <!-- HEADER STYLE -->
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="Background" Value="#000000"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="FontWeight" Value="Bold"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                        <Setter Property="Padding" Value="8"/>
+                    </Style>
 
-				<DataGrid.Columns>
+                    <!-- CELL STYLE -->
+                    <Style TargetType="DataGridCell">
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#3a3a55"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
 
-					<DataGridTemplateColumn Width="50">
-						<DataGridTemplateColumn.CellTemplate>
-							<DataTemplate>
-								<CheckBox x:Name="RowCheckBox"
-                                          IsChecked="{Binding IsSelected}"
+                </DataGrid.Resources>
+
+                <DataGrid.Columns>
+
+                    <!-- CHECKBOX -->
+                    <DataGridTemplateColumn Width="50">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsSelected}"
                                           HorizontalAlignment="Center"
                                           VerticalAlignment="Center"/>
-							</DataTemplate>
-						</DataGridTemplateColumn.CellTemplate>
-					</DataGridTemplateColumn>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
 
-					<DataGridTextColumn x:Name="ColMac" Header="MAC Address" Binding="{Binding Mac}" Width="200" IsReadOnly="True"/>
+                    <!-- FIXED BINDINGS -->
+                    <DataGridTextColumn x:Name="ColMac"
+                                        Header="MAC Address"
+                                        Binding="{Binding MAC}"
+                                        Width="200"
+                                        IsReadOnly="True"/>
 
-					<DataGridTextColumn x:Name="ColIp" Header="Broadcast IP" Binding="{Binding Ip}" Width="200" IsReadOnly="True"/>
+                    <DataGridTextColumn x:Name="ColIp"
+                                        Header="Broadcast IP"
+                                        Binding="{Binding IP}"
+                                        Width="200"
+                                        IsReadOnly="True"/>
 
-					<DataGridTemplateColumn x:Name="ColActions" Header="Akcje" Width="300">
-						<DataGridTemplateColumn.CellTemplate>
-							<DataTemplate>
-								<StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-									<Button x:Name="BtnPowerOn" Content="Włącz" Background="#4CAF50" Foreground="White" Padding="8,3" Margin="0,0,5,0" BorderThickness="0"/>
-									<Button x:Name="BtnPowerOff" Content="Wyłącz" Background="#F44336" Foreground="White" Padding="8,3" Margin="0,0,5,0" BorderThickness="0"/>
-									<Button x:Name="BtnPreview" Content="Podgląd" Background="#2196F3" Foreground="White" Padding="8,3" BorderThickness="0"/>
-								</StackPanel>
-							</DataTemplate>
-						</DataGridTemplateColumn.CellTemplate>
-					</DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Hostname"
+                                        Binding="{Binding Hostname}"
+                                        Width="200"
+                                        IsReadOnly="True"/>
 
-					<DataGridTemplateColumn x:Name="ColStatus" Header="Status / Błąd" Width="*">
-						<DataGridTemplateColumn.CellTemplate>
-							<DataTemplate>
-								<TextBlock x:Name="TxtError"
-                                           Text="{Binding Error}"
-                                           Foreground="#ff5555"
-                                           VerticalAlignment="Center"
-                                           Margin="5,0"
-                                           TextWrapping="Wrap"/>
-							</DataTemplate>
-						</DataGridTemplateColumn.CellTemplate>
-					</DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Online"
+                                        Binding="{Binding Onl}"
+                                        Width="80"
+                                        IsReadOnly="True"/>
 
-				</DataGrid.Columns>
-			</DataGrid>
-		</Border>
+                    <!-- ACTIONS -->
+                    <DataGridTemplateColumn x:Name="ColActions"
+                                            Header="Akcje"
+                                            Width="300">
 
-		<WrapPanel x:Name="BottomActionsPanel" Grid.Row="2" HorizontalAlignment="Center" Margin="10">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
 
-			<Button x:Name="BtnDetectComputers"
+                                <StackPanel Orientation="Horizontal"
+                                            HorizontalAlignment="Center">
+
+                                    <Button Content="Włącz"
+                                            Background="#4CAF50"
+                                            Foreground="White"
+                                            Padding="8,3"
+                                            Margin="0,0,5,0"
+                                            BorderThickness="0"/>
+
+                                    <Button Content="Wyłącz"
+                                            Background="#F44336"
+                                            Foreground="White"
+                                            Padding="8,3"
+                                            Margin="0,0,5,0"
+                                            BorderThickness="0"/>
+
+                                    <Button Content="Podgląd"
+                                            Background="#2196F3"
+                                            Foreground="White"
+                                            Padding="8,3"
+                                            BorderThickness="0"/>
+
+                                </StackPanel>
+
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <!-- STATUS -->
+                    <DataGridTextColumn Header="Status / Błąd"
+                                        Binding="{Binding Error}"
+                                        Width="*"
+                                        IsReadOnly="True"/>
+
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <!-- BOTTOM BUTTONS -->
+        <WrapPanel x:Name="BottomActionsPanel"
+                   Grid.Row="2"
+                   HorizontalAlignment="Center"
+                   Margin="10">
+
+            <Button x:Name="BtnDetectComputers"
                     Content="Wykryj komputery"
                     Width="150"
                     Background="#6a1b9a"
                     Foreground="White"
                     Padding="8"
                     Margin="5"
-                    BorderThickness="0" Click="WykryjKomputery"
-					/>
+                    BorderThickness="0"
+                    Click="WykryjKomputery"/>
 
-			<Button x:Name="BtnLoadFromFile"
+            <Button x:Name="BtnLoadFromFile"
                     Content="Dodaj z pliku"
                     Width="150"
                     Background="#e67e22"
@@ -118,9 +170,9 @@
                     Margin="5"
                     BorderThickness="0"/>
 
-			<Border Width="30"/>
+            <Border Width="30"/>
 
-			<Button x:Name="BtnSelectAll"
+            <Button x:Name="BtnSelectAll"
                     Content="Zaznacz wszystko"
                     Width="150"
                     Background="#454566"
@@ -129,7 +181,7 @@
                     Margin="5"
                     BorderThickness="0"/>
 
-			<Button x:Name="BtnPowerOnAll"
+            <Button x:Name="BtnPowerOnAll"
                     Content="Włącz wszystkie"
                     Width="150"
                     Background="#2e7d32"
@@ -138,7 +190,7 @@
                     Margin="5"
                     BorderThickness="0"/>
 
-			<Button x:Name="BtnPowerOffAll"
+            <Button x:Name="BtnPowerOffAll"
                     Content="Wyłącz wszystkie"
                     Width="150"
                     Background="#c62828"
@@ -147,7 +199,7 @@
                     Margin="5"
                     BorderThickness="0"/>
 
-		</WrapPanel>
+        </WrapPanel>
 
-	</Grid>
+    </Grid>
 </Window>
