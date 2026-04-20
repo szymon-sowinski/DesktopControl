@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="DesktopControl/DesktopControl.csproj" />
+  <Project Path="DesktopControlAgent/DesktopControlAgent.csproj" Id="9c75552c-0545-44f6-8c9d-fd2927c432e3" />
 </Solution>
