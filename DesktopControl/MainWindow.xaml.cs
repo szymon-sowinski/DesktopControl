@@ -61,6 +61,68 @@ namespace DesktopControl
             this.DataContext = this;
             ComputersGrid.ItemsSource = Komputery;
         }
+        private bool IsValidIp(string ip)
+        {
+            if (!IPAddress.TryParse(ip, out var address))
+                return false;
+
+            byte[] bytes = address.GetAddressBytes();
+
+            if (bytes[0] >= 224 && bytes[0] <= 239)
+                return false;
+
+            if (ip == "255.255.255.255")
+                return false;
+
+            if (bytes[3] == 255)
+                return false;
+
+            return true;
+        }
+        private List<(string IP, string MAC)> GetDevicesFromArp()
+        {
+            List<(string, string)> result = new List<(string, string)>();
+
+            try
+            {
+                Process p = new Process();
+                p.StartInfo.FileName = "arp";
+                p.StartInfo.Arguments = "-a";
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.UseShellExecute = false;
+                p.StartInfo.CreateNoWindow = true;
+
+                p.Start();
+                string output = p.StandardOutput.ReadToEnd();
+                p.WaitForExit();
+
+                var lines = output.Split('\n');
+
+                foreach (var line in lines)
+                {
+                    var match = System.Text.RegularExpressions.Regex.Match(
+                        line,
+                        @"(\d+\.\d+\.\d+\.\d+)\s+([a-fA-F0-9\-]+)"
+                    );
+
+                    if (match.Success)
+                    {
+                        string ip = match.Groups[1].Value;
+                        string mac = match.Groups[2].Value;
+
+                        if (!string.IsNullOrWhiteSpace(ip) &&
+                            !string.IsNullOrWhiteSpace(mac) &&
+                            IsValidIp(ip))
+                        {
+                            result.Add((ip, mac));
+                        }
+                    }
+                }
+            }
+            catch { }
+
+            return result;
+        }
 
         // --- NOWA METODA: ZAZNACZ WSZYSTKIE ---
         private void BtnSelectAll_Click(object sender, RoutedEventArgs e)
@@ -154,31 +216,55 @@ namespace DesktopControl
         private async void WykryjKomputery(object sender, RoutedEventArgs e)
         {
             Komputery.Clear();
+
             string localIP = GetLocalIPAddress();
             string subnet = localIP.Substring(0, localIP.LastIndexOf('.') + 1);
-            List<Task> tasks = new List<Task>();
 
+            List<Task> tasks = new List<Task>();
+            SemaphoreSlim semaphore = new SemaphoreSlim(40);
+
+            // 🔹 1. Ping sweep (uzupełnia ARP)
             for (int i = 1; i < 255; i++)
             {
                 string ip = subnet + i;
+
                 tasks.Add(Task.Run(async () =>
                 {
-                    using (Ping ping = new Ping())
+                    await semaphore.WaitAsync();
+                    try
                     {
-                        try
+                        using (Ping ping = new Ping())
                         {
-                            var reply = await ping.SendPingAsync(ip, 150);
-                            if (reply.Status == IPStatus.Success)
+                            try
                             {
-                                var k = new DeviceItem(ip, GetMacAddress(ip), GetHostName(ip), true);
-                                Dispatcher.Invoke(() => Komputery.Add(k));
+                                await ping.SendPingAsync(ip, 400);
                             }
+                            catch { }
                         }
-                        catch { }
+                    }
+                    finally
+                    {
+                        semaphore.Release();
                     }
                 }));
             }
+
             await Task.WhenAll(tasks);
+
+            var devices = GetDevicesFromArp();
+
+            foreach (var d in devices)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    Komputery.Add(new DeviceItem(
+                        d.IP,
+                        d.MAC,
+                        GetHostName(d.IP),
+                        true
+                    ));
+                });
+            }
         }
 
         private void SendWakeOnLan(string macAddress)
