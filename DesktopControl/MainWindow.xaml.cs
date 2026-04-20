@@ -165,5 +165,53 @@ namespace DesktopControl
 			}
 			await Task.WhenAll(tasks);
 		}
-	}
+        private void SendWakeOnLan(string macAddress)
+        {
+            byte[] macBytes = new byte[6];
+            string[] hex = macAddress.Split('-');
+
+            for (int i = 0; i < 6; i++)
+                macBytes[i] = Convert.ToByte(hex[i], 16);
+
+            byte[] packet = new byte[102];
+
+            // 6x FF
+            for (int i = 0; i < 6; i++)
+                packet[i] = 0xFF;
+
+            // 16x MAC
+            for (int i = 1; i <= 16; i++)
+                Buffer.BlockCopy(macBytes, 0, packet, i * 6, 6);
+
+            using (UdpClient client = new UdpClient())
+            {
+                client.EnableBroadcast = true;
+                client.Send(packet, packet.Length, new IPEndPoint(IPAddress.Broadcast, 9));
+            }
+        }
+
+        private async void BtnPowerOn_Click(object sender, RoutedEventArgs e)
+        {
+            var przycisk = sender as Button;
+            var urz = przycisk?.DataContext as DeviceItem;
+
+            if (urz == null) return;
+
+            urz.Error = "Włączanie...";
+
+            try
+            {
+                await Task.Run(() =>
+                {
+                    SendWakeOnLan(urz.MAC);
+                });
+
+                urz.Error = "Wysłano WoL.";
+            }
+            catch (Exception ex)
+            {
+                urz.Error = $"Błąd: {ex.Message}";
+            }
+        }
+    }
 }
