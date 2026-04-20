@@ -217,54 +217,23 @@ namespace DesktopControl
         {
             Komputery.Clear();
 
-            string localIP = GetLocalIPAddress();
-            string subnet = localIP.Substring(0, localIP.LastIndexOf('.') + 1);
-
-            List<Task> tasks = new List<Task>();
-            SemaphoreSlim semaphore = new SemaphoreSlim(40);
-
-            // 🔹 1. Ping sweep (uzupełnia ARP)
-            for (int i = 1; i < 255; i++)
+            await Task.Run(() =>
             {
-                string ip = subnet + i;
+                var devices = GetDevicesFromArp();
 
-                tasks.Add(Task.Run(async () =>
+                foreach (var d in devices)
                 {
-                    await semaphore.WaitAsync();
-                    try
+                    Dispatcher.Invoke(() =>
                     {
-                        using (Ping ping = new Ping())
-                        {
-                            try
-                            {
-                                await ping.SendPingAsync(ip, 400);
-                            }
-                            catch { }
-                        }
-                    }
-                    finally
-                    {
-                        semaphore.Release();
-                    }
-                }));
-            }
-
-            await Task.WhenAll(tasks);
-
-            var devices = GetDevicesFromArp();
-
-            foreach (var d in devices)
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    Komputery.Add(new DeviceItem(
-                        d.IP,
-                        d.MAC,
-                        GetHostName(d.IP),
-                        true
-                    ));
-                });
-            }
+                        Komputery.Add(new DeviceItem(
+                            d.IP,
+                            d.MAC,
+                            "Unknown",   // brak DNS = szybciej i stabilniej
+                            true
+                        ));
+                    });
+                }
+            });
         }
 
         private void SendWakeOnLan(string macAddress)
