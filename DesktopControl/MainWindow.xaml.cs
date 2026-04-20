@@ -278,6 +278,18 @@ namespace DesktopControl
                 urz.Error = $"Błąd: {ex.Message}";
             }
         }
+
+        private void Preview_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as FrameworkElement;
+            var device = button?.DataContext as DeviceItem;
+
+            if (device == null) return;
+
+            PreviewWindow window = new PreviewWindow(device.IP);
+            window.Owner = this;
+            window.Show();
+        }
     }
 
     // --- KONWERTER KOLORÓW STATUSU ---
