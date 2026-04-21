@@ -74,7 +74,7 @@
 
         <WrapPanel x:Name="BottomActionsPanel" Grid.Row="2" HorizontalAlignment="Center" Margin="10">
             <Button x:Name="BtnDetectComputers" Content="Wykryj komputery" Width="150" Background="#6a1b9a" Foreground="White" Padding="8" Margin="5" BorderThickness="0" Click="WykryjKomputery"/>
-            <Button x:Name="BtnLoadFromFile" Content="Dodaj z pliku" Width="150" Background="#e67e22" Foreground="White" Padding="8" Margin="5" BorderThickness="0"/>
+           
             <Border Width="30"/>
             <Button x:Name="BtnSelectAll" Click="BtnSelectAll_Click" Content="Zaznacz wszystko" Width="150" Background="#454566" Foreground="White" Padding="8" Margin="5" BorderThickness="0"/>
             <Button x:Name="BtnPowerOnAll" Content="Włącz wszystkie" Width="150" Background="#2e7d32" Foreground="White" Padding="8" Margin="5" BorderThickness="0"/>
