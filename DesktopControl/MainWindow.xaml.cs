@@ -15,72 +15,6 @@ using System.Windows.Media;
 
 namespace DesktopControl
 {
-	/*********************
-	nazwa klasy: DeviceItem
-	opis: Reprezentuje pojedyncze urządzenie w sieci (IP, MAC, hostname, status).
-	parametry: przekazywane w konstruktorze (ip, mac, hostname, online)
-	zwracany typ i opis: brak (klasa modelowa)
-	*********************/
-	public class DeviceItem : INotifyPropertyChanged
-	{
-		public string IP { get; set; } = string.Empty;
-		public string MAC { get; set; } = string.Empty;
-		public string Hostname { get; set; } = string.Empty;
-		public bool Onl { get; set; }
-
-		private bool _isSelected;
-
-		/*********************
-		nazwa właściwości: IsSelected
-		opis: Określa czy urządzenie jest zaznaczone w UI
-		parametry: wartość bool
-		zwracany typ i opis: bool – stan zaznaczenia
-		*********************/
-		public bool IsSelected
-		{
-			get => _isSelected;
-			set { _isSelected = value; OnPropertyChanged(nameof(IsSelected)); }
-		}
-
-		private string _error = "Gotowy";
-
-		/*********************
-		nazwa właściwości: Error
-		opis: Przechowuje aktualny status operacji (np. błąd, wysłano komendę)
-		parametry: string
-		zwracany typ i opis: string – komunikat statusu
-		*********************/
-		public string Error
-		{
-			get => _error;
-			set { _error = value; OnPropertyChanged(nameof(Error)); }
-		}
-
-		/*********************
-		nazwa konstruktora: DeviceItem
-		opis: Inicjalizuje obiekt urządzenia
-		parametry: ip (string), mac (string), hostname (string), online (bool)
-		zwracany typ i opis: brak
-		*********************/
-		public DeviceItem(string ip, string mac, string hostname, bool online)
-		{
-			IP = ip;
-			MAC = mac;
-			Hostname = hostname;
-			Onl = online;
-		}
-
-		public event PropertyChangedEventHandler? PropertyChanged;
-
-		/*********************
-		nazwa metody: OnPropertyChanged
-		opis: Wywołuje zdarzenie zmiany właściwości (binding UI)
-		parametry: name (string) – nazwa właściwości
-		zwracany typ i opis: void
-		*********************/
-		protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-	}
-
 
 	/*********************
 	nazwa klasy: MainWindow
@@ -93,7 +27,7 @@ namespace DesktopControl
 		[DllImport("iphlpapi.dll", ExactSpelling = true)]
 		public static extern int SendARP(int destIp, int srcIp, byte[] macAddr, ref int physicalAddrLen);
 
-		public ObservableCollection<DeviceItem> Komputery { get; set; } = new ObservableCollection<DeviceItem>();
+		public ObservableCollection<Komputer> Komputery { get; set; } = new ObservableCollection<Komputer>();
 
 		/*********************
 		nazwa konstruktora: MainWindow
@@ -207,7 +141,7 @@ namespace DesktopControl
 		private async void BtnPowerOff_Click(object sender, RoutedEventArgs e)
 		{
 			var button = sender as Button;
-			var device = button?.DataContext as DeviceItem;
+			var device = button?.DataContext as Komputer;
 
 			if (device == null) return;
 
@@ -298,7 +232,7 @@ namespace DesktopControl
 				{
 					Dispatcher.Invoke(() =>
 					{
-						Komputery.Add(new DeviceItem(
+						Komputery.Add(new Komputer(
 							d.IP,
 							d.MAC,
 							"Unknown",
@@ -347,7 +281,7 @@ namespace DesktopControl
 		private async void BtnPowerOn_Click(object sender, RoutedEventArgs e)
 		{
 			var przycisk = sender as Button;
-			var urz = przycisk?.DataContext as DeviceItem;
+			var urz = przycisk?.DataContext as Komputer;
 
 			if (urz == null) return;
 
@@ -373,7 +307,7 @@ namespace DesktopControl
 		private void Preview_Click(object sender, RoutedEventArgs e)
 		{
 			var button = sender as FrameworkElement;
-			var device = button?.DataContext as DeviceItem;
+			var device = button?.DataContext as Komputer;
 
 			if (device == null) return;
 
@@ -423,5 +357,32 @@ namespace DesktopControl
 		{
 			throw new NotImplementedException();
 		}
-	}
+
+        private async void BtnLock_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            var device = button?.DataContext as Komputer;
+
+            if (device == null) return;
+
+            device.Error = "Blokowanie...";
+
+            try
+            {
+                using (TcpClient client = new TcpClient())
+                {
+                    await client.ConnectAsync(device.IP, 6000);
+
+                    byte[] data = System.Text.Encoding.UTF8.GetBytes("lock");
+                    await client.GetStream().WriteAsync(data, 0, data.Length);
+                }
+
+                device.Error = "Zablokowano";
+            }
+            catch (Exception ex)
+            {
+                device.Error = "Błąd: " + ex.Message;
+            }
+        }
+    }
 }

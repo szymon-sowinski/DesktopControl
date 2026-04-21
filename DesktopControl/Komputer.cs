@@ -1,42 +1,67 @@
-﻿using System;
+﻿using System.ComponentModel;
 
-namespace DesktopControl
-
+/*********************
+nazwa klasy: Komputer
+opis: Reprezentuje pojedyncze urządzenie w sieci (IP, MAC, hostname, status).
+parametry: przekazywane w konstruktorze (ip, mac, hostname, online)
+zwracany typ i opis: brak (klasa modelowa)
+*********************/
+public class Komputer : INotifyPropertyChanged
 {
+    public string IP { get; set; } = string.Empty;
+    public string MAC { get; set; } = string.Empty;
+    public string Hostname { get; set; } = string.Empty;
+    public bool Onl { get; set; }
 
-	/*********************
-    nazwa klasy: Komputer
-    opis: Model reprezentujący komputer w sieci. Przechowuje podstawowe dane takie jak adres IP, MAC, nazwa hosta, status online oraz datę ostatniego logowania.
-    parametry: ip, mac, hostname, onl, ostatnieLogowanie (przekazywane w konstruktorze)
-    zwracany typ i opis: brak (klasa modelowa)
+    private bool _isSelected;
+
+    /*********************
+    nazwa właściwości: IsSelected
+    opis: Określa czy urządzenie jest zaznaczone w UI
+    parametry: wartość bool
+    zwracany typ i opis: bool – stan zaznaczenia
     *********************/
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set { _isSelected = value; OnPropertyChanged(nameof(IsSelected)); }
+    }
 
-	public class Komputer
+    private string _error = "Gotowy";
 
-	{
+    /*********************
+    nazwa właściwości: Error
+    opis: Przechowuje aktualny status operacji (np. błąd, wysłano komendę)
+    parametry: string
+    zwracany typ i opis: string – komunikat statusu
+    *********************/
+    public string Error
+    {
+        get => _error;
+        set { _error = value; OnPropertyChanged(nameof(Error)); }
+    }
 
-		public string IP { get; set; }
-		public string MAC { get; set; }
-		public string Hostname { get; set; }
-		public bool Onl { get; set; }
-		public DateTime OstatnieLogowanie { get; set; }
+    /*********************
+    nazwa konstruktora: Komputer
+    opis: Inicjalizuje obiekt urządzenia
+    parametry: ip (string), mac (string), hostname (string), online (bool)
+    zwracany typ i opis: brak
+    *********************/
+    public Komputer(string ip, string mac, string hostname, bool online)
+    {
+        IP = ip;
+        MAC = mac;
+        Hostname = hostname;
+        Onl = online;
+    }
 
-		/*********************
-        nazwa konstruktora: Komputer
-        opis: Inicjalizuje obiekt komputera wszystkimi wymaganymi danymi
-        parametry: ip, mac, hostname, onl, ostatnieLogowanie
-        zwracany typ i opis: brak
-        *********************/
+    public event PropertyChangedEventHandler? PropertyChanged;
 
-		public Komputer(string ip, string mac, string hostname, bool onl, DateTime ostatnieLogowanie)
-		{
-
-			IP = ip;
-			MAC = mac;
-			Hostname = hostname;
-			Onl = onl;
-			OstatnieLogowanie = ostatnieLogowanie;
-
-		}
-	}
+    /*********************
+    nazwa metody: OnPropertyChanged
+    opis: Wywołuje zdarzenie zmiany właściwości (binding UI)
+    parametry: name (string) – nazwa właściwości
+    zwracany typ i opis: void
+    *********************/
+    protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }
