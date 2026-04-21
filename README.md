@@ -17,6 +17,18 @@ Aby aplikacja DesktopControl działała poprawnie i zapewniała stabilne połąc
 
 ---
 
+# Proces konfiguracji
+
+Aby aplikacja DesktopControl działała poprawnie i umożliwiała zdalne zarządzanie urządzeniami, wymagane jest skonfigurowanie systemu w dwóch miejscach: na komputerze użytkownika (sterującym) oraz na komputerze zdalnym (klienckim).
+
+Na urządzeniu zdalnym musi być uruchomiona specjalna aplikacja agenta. Jest ona odpowiedzialna za udostępnienie funkcji takich jak podgląd ekranu oraz zdalne włączanie i wyłączanie komputera. Bez aktywnego agenta urządzenie nie będzie widoczne jako w pełni obsługiwalne w systemie DesktopControl.
+
+Proces konfiguracji na urządzeniu zdalnym przebiega następująco: najpierw należy uruchomić aplikację agenta na komputerze docelowym. Następnie aplikacja automatycznie inicjuje usługę nasłuchującą w sieci lokalnej i udostępnia swój status systemowi DesktopControl. Od tego momentu komputer staje się dostępny na liście urządzeń w aplikacji głównej.
+
+Dopiero po poprawnym uruchomieniu agenta możliwe jest korzystanie z funkcji takich jak podgląd pulpitu oraz zdalne włączanie i wyłączanie urządzenia z poziomu innego komputera w tej samej sieci lokalnej.
+
+---
+
 # Interfejs użytkownika
 
 Interfejs aplikacji DesktopControl został zaprojektowany w sposób przejrzysty i nowoczesny, z naciskiem na szybki dostęp do najważniejszych funkcji zarządzania urządzeniami w sieci.
