@@ -15,282 +15,413 @@ using System.Windows.Media;
 
 namespace DesktopControl
 {
-    public class DeviceItem : INotifyPropertyChanged
-    {
-        public string IP { get; set; } = string.Empty;
-        public string MAC { get; set; } = string.Empty;
-        public string Hostname { get; set; } = string.Empty;
-        public bool Onl { get; set; }
+	/*********************
+	nazwa klasy: DeviceItem
+	opis: Reprezentuje pojedyncze urządzenie w sieci (IP, MAC, hostname, status).
+	parametry: przekazywane w konstruktorze (ip, mac, hostname, online)
+	zwracany typ i opis: brak (klasa modelowa)
+	*********************/
+	public class DeviceItem : INotifyPropertyChanged
+	{
+		public string IP { get; set; } = string.Empty;
+		public string MAC { get; set; } = string.Empty;
+		public string Hostname { get; set; } = string.Empty;
+		public bool Onl { get; set; }
 
-        private bool _isSelected;
-        public bool IsSelected
-        {
-            get => _isSelected;
-            set { _isSelected = value; OnPropertyChanged(nameof(IsSelected)); }
-        }
+		private bool _isSelected;
 
-        private string _error = "Gotowy";
-        public string Error
-        {
-            get => _error;
-            set { _error = value; OnPropertyChanged(nameof(Error)); }
-        }
+		/*********************
+		nazwa właściwości: IsSelected
+		opis: Określa czy urządzenie jest zaznaczone w UI
+		parametry: wartość bool
+		zwracany typ i opis: bool – stan zaznaczenia
+		*********************/
+		public bool IsSelected
+		{
+			get => _isSelected;
+			set { _isSelected = value; OnPropertyChanged(nameof(IsSelected)); }
+		}
 
-        public DeviceItem(string ip, string mac, string hostname, bool online)
-        {
-            IP = ip;
-            MAC = mac;
-            Hostname = hostname;
-            Onl = online;
-        }
+		private string _error = "Gotowy";
 
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-    }
+		/*********************
+		nazwa właściwości: Error
+		opis: Przechowuje aktualny status operacji (np. błąd, wysłano komendę)
+		parametry: string
+		zwracany typ i opis: string – komunikat statusu
+		*********************/
+		public string Error
+		{
+			get => _error;
+			set { _error = value; OnPropertyChanged(nameof(Error)); }
+		}
 
-    public partial class MainWindow : Window
-    {
-        [DllImport("iphlpapi.dll", ExactSpelling = true)]
-        public static extern int SendARP(int destIp, int srcIp, byte[] macAddr, ref int physicalAddrLen);
+		/*********************
+		nazwa konstruktora: DeviceItem
+		opis: Inicjalizuje obiekt urządzenia
+		parametry: ip (string), mac (string), hostname (string), online (bool)
+		zwracany typ i opis: brak
+		*********************/
+		public DeviceItem(string ip, string mac, string hostname, bool online)
+		{
+			IP = ip;
+			MAC = mac;
+			Hostname = hostname;
+			Onl = online;
+		}
 
-        public ObservableCollection<DeviceItem> Komputery { get; set; } = new ObservableCollection<DeviceItem>();
+		public event PropertyChangedEventHandler? PropertyChanged;
 
-        public MainWindow()
-        {
-            InitializeComponent();
-            this.DataContext = this;
-            ComputersGrid.ItemsSource = Komputery;
-        }
-        private bool IsValidIp(string ip)
-        {
-            if (!IPAddress.TryParse(ip, out var address))
-                return false;
-
-            byte[] bytes = address.GetAddressBytes();
-
-            if (bytes[0] >= 224 && bytes[0] <= 239)
-                return false;
-
-            if (ip == "255.255.255.255")
-                return false;
-
-            if (bytes[3] == 255)
-                return false;
-
-            return true;
-        }
-        private List<(string IP, string MAC)> GetDevicesFromArp()
-        {
-            List<(string, string)> result = new List<(string, string)>();
-
-            try
-            {
-                Process p = new Process();
-                p.StartInfo.FileName = "arp";
-                p.StartInfo.Arguments = "-a";
-                p.StartInfo.RedirectStandardOutput = true;
-                p.StartInfo.UseShellExecute = false;
-                p.StartInfo.CreateNoWindow = true;
-
-                p.Start();
-                string output = p.StandardOutput.ReadToEnd();
-                p.WaitForExit();
-
-                var lines = output.Split('\n');
-
-                foreach (var line in lines)
-                {
-                    var match = System.Text.RegularExpressions.Regex.Match(
-                        line,
-                        @"(\d+\.\d+\.\d+\.\d+)\s+([a-fA-F0-9\-]+)"
-                    );
-
-                    if (match.Success)
-                    {
-                        string ip = match.Groups[1].Value;
-                        string mac = match.Groups[2].Value;
-
-                        if (!string.IsNullOrWhiteSpace(ip) &&
-                            !string.IsNullOrWhiteSpace(mac) &&
-                            IsValidIp(ip))
-                        {
-                            result.Add((ip, mac));
-                        }
-                    }
-                }
-            }
-            catch { }
-
-            return result;
-        }
+		/*********************
+		nazwa metody: OnPropertyChanged
+		opis: Wywołuje zdarzenie zmiany właściwości (binding UI)
+		parametry: name (string) – nazwa właściwości
+		zwracany typ i opis: void
+		*********************/
+		protected void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+	}
 
 
-        private void BtnSelectAll_Click(object sender, RoutedEventArgs e)
-        {
-            foreach (var komputery in Komputery)
-            {
-                komputery.IsSelected = true;
-            }
-        }
+	/*********************
+	nazwa klasy: MainWindow
+	opis: Główne okno aplikacji zarządzającej urządzeniami w sieci
+	parametry: brak
+	zwracany typ i opis: brak
+	*********************/
+	public partial class MainWindow : Window
+	{
+		[DllImport("iphlpapi.dll", ExactSpelling = true)]
+		public static extern int SendARP(int destIp, int srcIp, byte[] macAddr, ref int physicalAddrLen);
 
-        private async void BtnPowerOff_Click(object sender, RoutedEventArgs e)
-        {
-            var button = sender as Button;
-            var device = button?.DataContext as DeviceItem;
+		public ObservableCollection<DeviceItem> Komputery { get; set; } = new ObservableCollection<DeviceItem>();
 
-            if (device == null) return;
+		/*********************
+		nazwa konstruktora: MainWindow
+		opis: Inicjalizuje UI oraz ustawia źródło danych
+		parametry: brak
+		zwracany typ i opis: brak
+		*********************/
+		public MainWindow()
+		{
+			InitializeComponent();
+			this.DataContext = this;
+			ComputersGrid.ItemsSource = Komputery;
+		}
 
-            device.Error = "Wyłączanie...";
+		/*********************
+		nazwa metody: IsValidIp
+		opis: Sprawdza czy adres IP jest poprawny i nie jest broadcastem/multicastem
+		parametry: ip (string)
+		zwracany typ i opis: bool – true jeśli poprawny
+		*********************/
+		private bool IsValidIp(string ip)
+		{
+			if (!IPAddress.TryParse(ip, out var address))
+				return false;
 
-            try
-            {
-                using (TcpClient client = new TcpClient())
-                {
-                    await client.ConnectAsync(device.IP, 6000);
+			byte[] bytes = address.GetAddressBytes();
 
-                    byte[] data = System.Text.Encoding.UTF8.GetBytes("shutdown");
-                    await client.GetStream().WriteAsync(data, 0, data.Length);
-                }
+			if (bytes[0] >= 224 && bytes[0] <= 239)
+				return false;
 
-                device.Error = "Wysłano komendę";
-            }
-            catch (Exception ex)
-            {
-                device.Error = "Błąd: " + ex.Message;
-            }
-        }
+			if (ip == "255.255.255.255")
+				return false;
 
-        private string GetLocalIPAddress()
-        {
-            try
-            {
-                var host = Dns.GetHostEntry(Dns.GetHostName());
-                foreach (var ip in host.AddressList)
-                    if (ip.AddressFamily == AddressFamily.InterNetwork) return ip.ToString();
-            }
-            catch { }
-            return "127.0.0.1";
-        }
+			if (bytes[3] == 255)
+				return false;
 
-        private string GetHostName(string ip)
-        {
-            try { return Dns.GetHostEntry(ip).HostName; }
-            catch { return "Unknown"; }
-        }
+			return true;
+		}
 
-        private string GetMacAddress(string ip)
-        {
-            try
-            {
-                byte[] macAddr = new byte[6];
-                int len = macAddr.Length;
-                int dest = BitConverter.ToInt32(IPAddress.Parse(ip).GetAddressBytes(), 0);
-                SendARP(dest, 0, macAddr, ref len);
-                return BitConverter.ToString(macAddr);
-            }
-            catch { return "Unknown"; }
-        }
+		/*********************
+		nazwa metody: GetDevicesFromArp
+		opis: Pobiera listę urządzeń z tablicy ARP systemu
+		parametry: brak
+		zwracany typ i opis: lista (IP, MAC)
+		*********************/
+		private List<(string IP, string MAC)> GetDevicesFromArp()
+		{
+			List<(string, string)> result = new List<(string, string)>();
 
-        private async void WykryjKomputery(object sender, RoutedEventArgs e)
-        {
-            Komputery.Clear();
+			try
+			{
+				Process p = new Process();
+				p.StartInfo.FileName = "arp";
+				p.StartInfo.Arguments = "-a";
+				p.StartInfo.RedirectStandardOutput = true;
+				p.StartInfo.UseShellExecute = false;
+				p.StartInfo.CreateNoWindow = true;
 
-            await Task.Run(() =>
-            {
-                var devices = GetDevicesFromArp();
+				p.Start();
+				string output = p.StandardOutput.ReadToEnd();
+				p.WaitForExit();
 
-                foreach (var d in devices)
-                {
-                    Dispatcher.Invoke(() =>
-                    {
-                        Komputery.Add(new DeviceItem(
-                            d.IP,
-                            d.MAC,
-                            "Unknown",   
-                            true
-                        ));
-                    });
-                }
-            });
-        }
+				var lines = output.Split('\n');
 
-        private void SendWakeOnLan(string macAddress)
-        {
-            try
-            {
-                byte[] macBytes = new byte[6];
-                string[] hex = macAddress.Split('-');
+				foreach (var line in lines)
+				{
+					var match = System.Text.RegularExpressions.Regex.Match(
+						line,
+						@"(\d+\.\d+\.\d+\.\d+)\s+([a-fA-F0-9\-]+)"
+					);
 
-                for (int i = 0; i < 6; i++)
-                    macBytes[i] = Convert.ToByte(hex[i], 16);
+					if (match.Success)
+					{
+						string ip = match.Groups[1].Value;
+						string mac = match.Groups[2].Value;
 
-                byte[] packet = new byte[102];
-                for (int i = 0; i < 6; i++) packet[i] = 0xFF;
-                for (int i = 1; i <= 16; i++) Buffer.BlockCopy(macBytes, 0, packet, i * 6, 6);
+						if (!string.IsNullOrWhiteSpace(ip) &&
+							!string.IsNullOrWhiteSpace(mac) &&
+							IsValidIp(ip))
+						{
+							result.Add((ip, mac));
+						}
+					}
+				}
+			}
+			catch { }
 
-                using (UdpClient client = new UdpClient())
-                {
-                    client.EnableBroadcast = true;
-                    client.Send(packet, packet.Length, new IPEndPoint(IPAddress.Broadcast, 9));
-                }
-            }
-            catch { }
-        }
+			return result;
+		}
 
-        private async void BtnPowerOn_Click(object sender, RoutedEventArgs e)
-        {
-            var przycisk = sender as Button;
-            var urz = przycisk?.DataContext as DeviceItem;
+		/*********************
+		nazwa metody: BtnSelectAll_Click
+		opis: Zaznacza wszystkie urządzenia na liście
+		parametry: sender, RoutedEventArgs
+		zwracany typ i opis: void
+		*********************/
+		private void BtnSelectAll_Click(object sender, RoutedEventArgs e)
+		{
+			foreach (var komputery in Komputery)
+			{
+				komputery.IsSelected = true;
+			}
+		}
 
-            if (urz == null) return;
+		/*********************
+		nazwa metody: BtnPowerOff_Click
+		opis: Wysyła komendę wyłączenia do urządzenia przez TCP
+		parametry: sender, RoutedEventArgs
+		zwracany typ i opis: void
+		*********************/
+		private async void BtnPowerOff_Click(object sender, RoutedEventArgs e)
+		{
+			var button = sender as Button;
+			var device = button?.DataContext as DeviceItem;
 
-            urz.Error = "Włączanie...";
+			if (device == null) return;
 
-            try
-            {
-                await Task.Run(() => { SendWakeOnLan(urz.MAC); });
-                urz.Error = "Wysłano WoL.";
-            }
-            catch (Exception ex)
-            {
-                urz.Error = $"Błąd: {ex.Message}";
-            }
-        }
+			device.Error = "Wyłączanie...";
 
-        private void Preview_Click(object sender, RoutedEventArgs e)
-        {
-            var button = sender as FrameworkElement;
-            var device = button?.DataContext as DeviceItem;
+			try
+			{
+				using (TcpClient client = new TcpClient())
+				{
+					await client.ConnectAsync(device.IP, 6000);
 
-            if (device == null) return;
+					byte[] data = System.Text.Encoding.UTF8.GetBytes("shutdown");
+					await client.GetStream().WriteAsync(data, 0, data.Length);
+				}
 
-            PreviewWindow window = new PreviewWindow(device.IP);
-            window.Owner = this;
-            window.Show();
-        }
-    }
+				device.Error = "Wysłano komendę";
+			}
+			catch (Exception ex)
+			{
+				device.Error = "Błąd: " + ex.Message;
+			}
+		}
+
+		/*********************
+		nazwa metody: GetLocalIPAddress
+		opis: Pobiera lokalny adres IP komputera
+		parametry: brak
+		zwracany typ i opis: string – adres IP
+		*********************/
+		private string GetLocalIPAddress()
+		{
+			try
+			{
+				var host = Dns.GetHostEntry(Dns.GetHostName());
+				foreach (var ip in host.AddressList)
+					if (ip.AddressFamily == AddressFamily.InterNetwork) return ip.ToString();
+			}
+			catch { }
+			return "127.0.0.1";
+		}
+
+		/*********************
+		nazwa metody: GetHostName
+		opis: Pobiera nazwę hosta na podstawie IP
+		parametry: ip (string)
+		zwracany typ i opis: string – hostname
+		*********************/
+		private string GetHostName(string ip)
+		{
+			try { return Dns.GetHostEntry(ip).HostName; }
+			catch { return "Unknown"; }
+		}
+
+		/*********************
+		nazwa metody: GetMacAddress
+		opis: Pobiera adres MAC na podstawie IP przy użyciu ARP
+		parametry: ip (string)
+		zwracany typ i opis: string – adres MAC
+		*********************/
+		private string GetMacAddress(string ip)
+		{
+			try
+			{
+				byte[] macAddr = new byte[6];
+				int len = macAddr.Length;
+				int dest = BitConverter.ToInt32(IPAddress.Parse(ip).GetAddressBytes(), 0);
+				SendARP(dest, 0, macAddr, ref len);
+				return BitConverter.ToString(macAddr);
+			}
+			catch { return "Unknown"; }
+		}
+
+		/*********************
+		nazwa metody: WykryjKomputery
+		opis: Skanuje sieć i dodaje urządzenia do listy
+		parametry: sender, RoutedEventArgs
+		zwracany typ i opis: void
+		*********************/
+		private async void WykryjKomputery(object sender, RoutedEventArgs e)
+		{
+			Komputery.Clear();
+
+			await Task.Run(() =>
+			{
+				var devices = GetDevicesFromArp();
+
+				foreach (var d in devices)
+				{
+					Dispatcher.Invoke(() =>
+					{
+						Komputery.Add(new DeviceItem(
+							d.IP,
+							d.MAC,
+							"Unknown",
+							true
+						));
+					});
+				}
+			});
+		}
+
+		/*********************
+		nazwa metody: SendWakeOnLan
+		opis: Wysyła pakiet Wake-on-LAN do urządzenia
+		parametry: macAddress (string)
+		zwracany typ i opis: void
+		*********************/
+		private void SendWakeOnLan(string macAddress)
+		{
+			try
+			{
+				byte[] macBytes = new byte[6];
+				string[] hex = macAddress.Split('-');
+
+				for (int i = 0; i < 6; i++)
+					macBytes[i] = Convert.ToByte(hex[i], 16);
+
+				byte[] packet = new byte[102];
+				for (int i = 0; i < 6; i++) packet[i] = 0xFF;
+				for (int i = 1; i <= 16; i++) Buffer.BlockCopy(macBytes, 0, packet, i * 6, 6);
+
+				using (UdpClient client = new UdpClient())
+				{
+					client.EnableBroadcast = true;
+					client.Send(packet, packet.Length, new IPEndPoint(IPAddress.Broadcast, 9));
+				}
+			}
+			catch { }
+		}
+
+		/*********************
+		nazwa metody: BtnPowerOn_Click
+		opis: Włącza urządzenie przez Wake-on-LAN
+		parametry: sender, RoutedEventArgs
+		zwracany typ i opis: void
+		*********************/
+		private async void BtnPowerOn_Click(object sender, RoutedEventArgs e)
+		{
+			var przycisk = sender as Button;
+			var urz = przycisk?.DataContext as DeviceItem;
+
+			if (urz == null) return;
+
+			urz.Error = "Włączanie...";
+
+			try
+			{
+				await Task.Run(() => { SendWakeOnLan(urz.MAC); });
+				urz.Error = "Wysłano WoL.";
+			}
+			catch (Exception ex)
+			{
+				urz.Error = $"Błąd: {ex.Message}";
+			}
+		}
+
+		/*********************
+		nazwa metody: Preview_Click
+		opis: Otwiera okno podglądu urządzenia
+		parametry: sender, RoutedEventArgs
+		zwracany typ i opis: void
+		*********************/
+		private void Preview_Click(object sender, RoutedEventArgs e)
+		{
+			var button = sender as FrameworkElement;
+			var device = button?.DataContext as DeviceItem;
+
+			if (device == null) return;
+
+			PreviewWindow window = new PreviewWindow(device.IP);
+			window.Owner = this;
+			window.Show();
+		}
+	}
 
 
-    public class StatusToColorConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-        {
-            string status = value as string ?? "";
-            if (status == "Gotowy" || status == "Wysłano sygnał." || status == "Wysłano WoL.")
-                return Brushes.LightGreen;
+	/*********************
+	nazwa klasy: StatusToColorConverter
+	opis: Konwerter statusu urządzenia na kolor w UI
+	parametry: brak
+	zwracany typ i opis: brak
+	*********************/
+	public class StatusToColorConverter : IValueConverter
+	{
+		/*********************
+		nazwa metody: Convert
+		opis: Zamienia status tekstowy na kolor
+		parametry: value, targetType, parameter, culture
+		zwracany typ i opis: Brush – kolor dla UI
+		*********************/
+		public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			string status = value as string ?? "";
+			if (status == "Gotowy" || status == "Wysłano sygnał." || status == "Wysłano WoL.")
+				return Brushes.LightGreen;
 
-            if (status.Contains("Błąd") || status.Contains("Wyjątek") || status.Contains("Odmowa"))
-                return Brushes.Tomato;
+			if (status.Contains("Błąd") || status.Contains("Wyjątek") || status.Contains("Odmowa"))
+				return Brushes.Tomato;
 
-            if (status.Contains("..."))
-                return Brushes.Orange;
+			if (status.Contains("..."))
+				return Brushes.Orange;
 
-            return Brushes.White;
-        }
+			return Brushes.White;
+		}
 
-        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
+		/*********************
+		nazwa metody: ConvertBack
+		opis: Niezaimplementowana konwersja wsteczna
+		parametry: value, targetType, parameter, culture
+		zwracany typ i opis: brak (rzuca wyjątek)
+		*********************/
+		public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+		{
+			throw new NotImplementedException();
+		}
+	}
 }
