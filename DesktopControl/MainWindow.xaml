@@ -43,7 +43,6 @@
 
                     <DataGridTextColumn Header="MAC Address" Binding="{Binding MAC}" Width="180" IsReadOnly="True"/>
                     <DataGridTextColumn Header="IP Address" Binding="{Binding IP}" Width="150" IsReadOnly="True"/>
-                    <DataGridTextColumn Header="Hostname" Binding="{Binding Hostname}" Width="180" IsReadOnly="True"/>
                     <DataGridTextColumn Header="Online" Binding="{Binding Onl}" Width="80" IsReadOnly="True"/>
 
                     <DataGridTemplateColumn Header="Akcje" Width="280">
@@ -87,10 +86,6 @@
         <WrapPanel x:Name="BottomActionsPanel" Grid.Row="2" HorizontalAlignment="Center" Margin="10">
             <Button x:Name="BtnDetectComputers" Content="Wykryj komputery" Width="150" Background="#6a1b9a" Foreground="White" Padding="8" Margin="5" BorderThickness="0" Click="WykryjKomputery"/>
            
-            <Border Width="30"/>
-            <Button x:Name="BtnSelectAll" Click="BtnSelectAll_Click" Content="Zaznacz wszystko" Width="150" Background="#454566" Foreground="White" Padding="8" Margin="5" BorderThickness="0"/>
-            <Button x:Name="BtnPowerOnAll" Content="Włącz wszystkie" Width="150" Background="#2e7d32" Foreground="White" Padding="8" Margin="5" BorderThickness="0"/>
-            <Button x:Name="BtnPowerOffAll" Content="Wyłącz wszystkie" Width="150" Background="#c62828" Foreground="White" Padding="8" Margin="5" BorderThickness="0"/>
         </WrapPanel>
     </Grid>
 </Window>
