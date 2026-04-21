@@ -18,7 +18,11 @@ namespace DesktopControl
         {
             try
             {
+                MessageBox.Show("Próba połączenia z " + ip);
+
                 TcpClient client = new TcpClient();
+
+                MessageBox.Show("Łączenie...");
                 await client.ConnectAsync(ip, 5000);
 
                 var stream = client.GetStream();
@@ -26,14 +30,19 @@ namespace DesktopControl
                 while (true)
                 {
                     byte[] lenBytes = new byte[4];
-                    await stream.ReadAsync(lenBytes, 0, 4);
+                    int readLen = await stream.ReadAsync(lenBytes, 0, 4);
+
                     int len = BitConverter.ToInt32(lenBytes, 0);
 
                     byte[] data = new byte[len];
                     int read = 0;
 
                     while (read < len)
-                        read += await stream.ReadAsync(data, read, len - read);
+                    {
+                        int r = await stream.ReadAsync(data, read, len - read);
+                        if (r == 0) throw new Exception("Rozłączono");
+                        read += r;
+                    }
 
                     using (MemoryStream ms = new MemoryStream(data))
                     {
@@ -52,7 +61,7 @@ namespace DesktopControl
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                MessageBox.Show("BŁĄD: " + ex.ToString());
             }
         }
     }
