@@ -144,47 +144,48 @@ class Program
         if (lockForm != null)
             return;
 
-        lockForm = new Form();
-
-        lockForm.FormBorderStyle = FormBorderStyle.None;
-        lockForm.WindowState = FormWindowState.Maximized;
-        lockForm.TopMost = true;
-        lockForm.BackColor = Color.Black;
-        lockForm.ShowInTaskbar = false;
-
-        lockForm.FormClosing += (s, e) =>
+        Thread t = new Thread(() =>
         {
-            e.Cancel = true;
-        };
+            lockForm = new Form();
 
-        Label label = new Label();
-        label.Text = "KOMPUTER ZABLOKOWANY\nSkontaktuj się z administratorem";
-        label.ForeColor = Color.White;
-        label.Font = new Font("Arial", 40, FontStyle.Bold);
-        label.Dock = DockStyle.Fill;
-        label.TextAlign = ContentAlignment.MiddleCenter;
+            lockForm.FormBorderStyle = FormBorderStyle.None;
+            lockForm.WindowState = FormWindowState.Maximized;
+            lockForm.TopMost = true;
+            lockForm.BackColor = Color.Black;
+            lockForm.ShowInTaskbar = false;
 
-        lockForm.Controls.Add(label);
+            Label label = new Label();
+            label.Text = "KOMPUTER ZABLOKOWANY\nSkontaktuj się z administratorem";
+            label.ForeColor = Color.White;
+            label.Font = new Font("Arial", 40, FontStyle.Bold);
+            label.Dock = DockStyle.Fill;
+            label.TextAlign = ContentAlignment.MiddleCenter;
 
-        Cursor.Hide();
+            lockForm.Controls.Add(label);
 
-        Application.Run(lockForm);
+            Cursor.Hide();
+
+            Application.Run(lockForm);
+        });
+
+        t.SetApartmentState(ApartmentState.STA);
+        t.Start();
     }
 
     /*********************
 	UNLOCK
 	*********************/
     static void HideLockScreen()
-    {
-        if (lockForm != null)
-        {
-            lockForm.Invoke(new Action(() =>
-            {
-                Cursor.Show();
-                lockForm.Close();
-            }));
+{
+	if (lockForm != null)
+	{
+		lockForm.Invoke(new Action(() =>
+		{
+			Cursor.Show();
+			lockForm.Close();
+		}));
 
-            lockForm = null;
-        }
-    }
+		lockForm = null;
+	}
+}
 }
