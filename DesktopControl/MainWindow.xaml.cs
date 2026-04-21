@@ -140,45 +140,23 @@ namespace DesktopControl
 
             if (device == null) return;
 
-            var confirm = MessageBox.Show($"Czy na pewno wyłączyć {device.IP}?", "Potwierdzenie", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            if (confirm != MessageBoxResult.Yes) return;
-
-            device.Error = "Zamykanie...";
+            device.Error = "Wyłączanie...";
 
             try
             {
-                await Task.Run(() =>
+                using (TcpClient client = new TcpClient())
                 {
-                    ProcessStartInfo psi = new ProcessStartInfo
-                    {
-                        FileName = "shutdown",
-                        Arguments = $"/m \\\\{device.IP} /s /f /t 0",
-                        CreateNoWindow = true,
-                        UseShellExecute = false,
-                        RedirectStandardError = true
-                    };
+                    await client.ConnectAsync(device.IP, 6000);
 
-                    using (Process? proc = Process.Start(psi))
-                    {
-                        if (proc != null)
-                        {
-                            string stdError = proc.StandardError.ReadToEnd();
-                            proc.WaitForExit();
+                    byte[] data = System.Text.Encoding.UTF8.GetBytes("shutdown");
+                    await client.GetStream().WriteAsync(data, 0, data.Length);
+                }
 
-                            Dispatcher.Invoke(() =>
-                            {
-                                if (proc.ExitCode == 0)
-                                    device.Error = "Wysłano sygnał.";
-                                else
-                                    device.Error = $"Błąd: {stdError.Trim()}";
-                            });
-                        }
-                    }
-                });
+                device.Error = "Wysłano komendę";
             }
             catch (Exception ex)
             {
-                device.Error = $"Wyjątek: {ex.Message}";
+                device.Error = "Błąd: " + ex.Message;
             }
         }
 
