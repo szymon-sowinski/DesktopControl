@@ -124,7 +124,7 @@ namespace DesktopControl
             return result;
         }
 
-        // --- NOWA METODA: ZAZNACZ WSZYSTKIE ---
+
         private void BtnSelectAll_Click(object sender, RoutedEventArgs e)
         {
             foreach (var komputery in Komputery)
@@ -228,7 +228,7 @@ namespace DesktopControl
                         Komputery.Add(new DeviceItem(
                             d.IP,
                             d.MAC,
-                            "Unknown",   // brak DNS = szybciej i stabilniej
+                            "Unknown",   
                             true
                         ));
                     });
@@ -292,7 +292,7 @@ namespace DesktopControl
         }
     }
 
-    // --- KONWERTER KOLORÓW STATUSU ---
+
     public class StatusToColorConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
