@@ -53,7 +53,18 @@
                                     <Button Content="Włącz" Click="BtnPowerOn_Click" Background="#4CAF50" Foreground="White" Padding="8,3" Margin="0,0,5,0" BorderThickness="0"/>
                                     <Button Content="Wyłącz" Click="BtnPowerOff_Click" Background="#F44336" Foreground="White" Padding="8,3" Margin="0,0,5,0" BorderThickness="0"/>
                                     <Button Content="Podgląd" Background="#2196F3" Foreground="White" Padding="8,3" BorderThickness="0" Click="Preview_Click"/>
-                                    <Button Content="Zablokuj" Background="#6a1b9a" Foreground="White" Padding="8,3" BorderThickness="0" Click="BtnLock_Click"/>
+                                    <Button Click="Btn_Lock" Background="#6a1b9a" Foreground="White">
+                                        <Button.Style>
+                                            <Style TargetType="Button">
+                                                <Setter Property="Content" Value="Zablokuj"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsLocked}" Value="True">
+                                                        <Setter Property="Content" Value="Odblokuj"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
                                 </StackPanel>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>

@@ -14,6 +14,8 @@ public class Komputer : INotifyPropertyChanged
     public bool Onl { get; set; }
 
     private bool _isSelected;
+    private bool _isLocked;
+
 
     /*********************
     nazwa właściwości: IsSelected
@@ -39,6 +41,17 @@ public class Komputer : INotifyPropertyChanged
     {
         get => _error;
         set { _error = value; OnPropertyChanged(nameof(Error)); }
+    }
+
+
+    public bool IsLocked
+    {
+        get => _isLocked;
+        set
+        {
+            _isLocked = value;
+            OnPropertyChanged(nameof(IsLocked));
+        }
     }
 
     /*********************

@@ -315,16 +315,48 @@ namespace DesktopControl
 			window.Owner = this;
 			window.Show();
 		}
-	}
+
+        private async void Btn_Lock(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            var device = button?.DataContext as Komputer;
+
+            if (device == null) return;
+
+            string command = device.IsLocked ? "unlock" : "lock";
+
+            device.Error = device.IsLocked ? "Odblokowywanie..." : "Blokowanie...";
+
+            try
+            {
+                using (TcpClient client = new TcpClient())
+                {
+                    await client.ConnectAsync(device.IP, 6000);
+
+                    byte[] data = System.Text.Encoding.UTF8.GetBytes(command);
+                    await client.GetStream().WriteAsync(data, 0, data.Length);
+                }
+
+                device.IsLocked = !device.IsLocked;
+
+                device.Error = device.IsLocked ? "Zablokowany" : "Odblokowany";
+            }
+            catch (Exception ex)
+            {
+                device.Error = "Błąd: " + ex.Message;
+            }
+
+        }
+    }
 
 
-	/*********************
+    /*********************
 	nazwa klasy: StatusToColorConverter
 	opis: Konwerter statusu urządzenia na kolor w UI
 	parametry: brak
 	zwracany typ i opis: brak
 	*********************/
-	public class StatusToColorConverter : IValueConverter
+    public class StatusToColorConverter : IValueConverter
 	{
 		/*********************
 		nazwa metody: Convert
@@ -360,29 +392,7 @@ namespace DesktopControl
 
         private async void BtnLock_Click(object sender, RoutedEventArgs e)
         {
-            var button = sender as Button;
-            var device = button?.DataContext as Komputer;
-
-            if (device == null) return;
-
-            device.Error = "Blokowanie...";
-
-            try
-            {
-                using (TcpClient client = new TcpClient())
-                {
-                    await client.ConnectAsync(device.IP, 6000);
-
-                    byte[] data = System.Text.Encoding.UTF8.GetBytes("lock");
-                    await client.GetStream().WriteAsync(data, 0, data.Length);
-                }
-
-                device.Error = "Zablokowano";
-            }
-            catch (Exception ex)
-            {
-                device.Error = "Błąd: " + ex.Message;
-            }
+           
         }
     }
 }
