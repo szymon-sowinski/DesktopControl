@@ -13,7 +13,7 @@ Projekt DesktopControl został opracowany jako aplikacja o przejrzystym interfej
 Aby aplikacja DesktopControl działała poprawnie i zapewniała stabilne połączenie zdalne między komputerami, system użytkownika powinien spełniać poniższe wymagania:
 
 - **System operacyjny:** Windows 11  
-- **Sieć:** aktywne połączenie z Internetem lub siecią lokalną  
+- **Sieć:** aktywne połączenie z siecią lokalną (LAN)  
 
 ---
 
@@ -21,11 +21,19 @@ Aby aplikacja DesktopControl działała poprawnie i zapewniała stabilne połąc
 
 Aby aplikacja DesktopControl działała poprawnie i umożliwiała zdalne zarządzanie urządzeniami, wymagane jest skonfigurowanie systemu w dwóch miejscach: na komputerze użytkownika (sterującym) oraz na komputerze zdalnym (klienckim).
 
-Na urządzeniu zdalnym musi być uruchomiona specjalna aplikacja agenta. Jest ona odpowiedzialna za udostępnienie funkcji takich jak podgląd ekranu oraz zdalne włączanie i wyłączanie komputera. Bez aktywnego agenta urządzenie nie będzie widoczne jako w pełni obsługiwalne w systemie DesktopControl.
+Na urządzeniu zdalnym musi być uruchomiona specjalna aplikacja **agenta**. Jest ona odpowiedzialna za udostępnienie funkcji takich jak podgląd ekranu oraz zdalne zarządzanie urządzeniem. Bez aktywnego agenta urządzenie nie będzie widoczne jako w pełni obsługiwalne w systemie DesktopControl.
 
-Proces konfiguracji na urządzeniu zdalnym przebiega następująco: najpierw należy uruchomić aplikację agenta na komputerze docelowym. Następnie aplikacja automatycznie inicjuje usługę nasłuchującą w sieci lokalnej i udostępnia swój status systemowi DesktopControl. Od tego momentu komputer staje się dostępny na liście urządzeń w aplikacji głównej.
+Aplikacja agenta działa w tle systemu jako proces nasłuchujący komunikacji sieciowej. Oznacza to, że po jej uruchomieniu nie jest widoczna jako standardowe okno aplikacji i nie wymaga dodatkowych działań ze strony użytkownika.
 
-Dopiero po poprawnym uruchomieniu agenta możliwe jest korzystanie z funkcji takich jak podgląd pulpitu oraz zdalne włączanie i wyłączanie urządzenia z poziomu innego komputera w tej samej sieci lokalnej.
+### Konfiguracja urządzenia zdalnego:
+1. Uruchom aplikację agenta na komputerze docelowym  
+2. Agent automatycznie uruchomi usługę nasłuchującą w sieci lokalnej  
+3. Urządzenie pojawi się na liście w aplikacji DesktopControl  
+
+Dopiero po poprawnym uruchomieniu agenta możliwe jest korzystanie z funkcji takich jak:
+- podgląd pulpitu  
+- zdalne włączanie i wyłączanie  
+- blokowanie i odblokowywanie urządzenia  
 
 ---
 
@@ -33,11 +41,12 @@ Dopiero po poprawnym uruchomieniu agenta możliwe jest korzystanie z funkcji tak
 
 Interfejs aplikacji DesktopControl został zaprojektowany w sposób przejrzysty i nowoczesny, z naciskiem na szybki dostęp do najważniejszych funkcji zarządzania urządzeniami w sieci.
 
+---
+
 ## Górna część aplikacji
 
 Na samej górze znajduje się pasek nagłówka zawierający:
-- ikonę aplikacji  
-- nazwę **Desktop Control**  
+- nazwę **Desktop Control**
 
 Nagłówek pełni funkcję informacyjną i identyfikuje aplikację.
 
@@ -45,15 +54,17 @@ Nagłówek pełni funkcję informacyjną i identyfikuje aplikację.
 
 ## Główna sekcja – lista urządzeń
 
-Centralnym elementem interfejsu jest tabela prezentująca wykryte urządzenia w sieci lokalnej. Urządzenia zostaną wykryte po kliknięciu przycisku **„Wykryj komputery”**.  
+Centralnym elementem interfejsu jest tabela prezentująca wykryte urządzenia w sieci lokalnej. Lista ta stanowi główny obszar roboczy aplikacji.
+
+Urządzenia pojawiają się po kliknięciu przycisku **„Wykryj komputery”**.
 
 Tabela zawiera następujące kolumny:
 - **MAC Address** – adres fizyczny urządzenia  
 - **IP Address** – adres IP w sieci  
 - **Hostname** – nazwa komputera (jeśli dostępna)  
-- **Online** – status dostępności (np. True)  
-- **Akcje** – przyciski operacji  
-- **Status / Błąd** – aktualny stan operacji (np. Gotowy)  
+- **Online** – status dostępności urządzenia (True / False)  
+- **Akcje** – zestaw przycisków operacji  
+- **Status / Błąd** – informacje o stanie lub błędach  
 
 Każdy wiersz reprezentuje jedno urządzenie.
 
@@ -61,38 +72,40 @@ Każdy wiersz reprezentuje jedno urządzenie.
 
 ## Przyciski akcji (w tabeli)
 
-W kolumnie **Akcje** dostępne są trzy przyciski dla każdego urządzenia:
+W kolumnie **Akcje** dostępne są przyciski umożliwiające bezpośrednią interakcję:
+
 - **Włącz** (zielony) – uruchamia komputer (Wake on LAN)  
 - **Wyłącz** (czerwony) – wyłącza komputer  
-- **Podgląd** (niebieski) – uruchamia podgląd zdalnego pulpitu  
+- **Podgląd** (niebieski) – uruchamia podgląd pulpitu  
+- **Zablokuj / Odblokuj** (dynamiczny) – zarządza blokadą urządzenia  
 
-Kolorystyka przycisków ułatwia szybkie rozróżnienie funkcji:
-- zielony → akcja pozytywna (uruchomienie)  
-- czerwony → akcja zatrzymania  
+### Dynamiczna blokada:
+- gdy urządzenie jest aktywne → przycisk **„Zablokuj”**  
+- po zablokowaniu → przycisk zmienia się na **„Odblokuj”**
+
+### Kolorystyka:
+- zielony → akcja pozytywna (start)  
+- czerwony → zatrzymanie / wyłączenie  
 - niebieski → podgląd / interakcja  
+- blokada → zmienna (w zależności od stanu)
 
 ---
 
 ## Dolny panel sterowania
 
-Na dole aplikacji znajduje się zestaw przycisków do operacji globalnych:
-- **Wykryj komputery** – skanuje sieć i odświeża listę urządzeń  
-- **Zaznacz wszystko** – zaznacza wszystkie urządzenia na liście  
-- **Włącz wszystkie** – uruchamia wszystkie zaznaczone komputery  
-- **Wyłącz wszystkie** – wyłącza wszystkie zaznaczone komputery  
-
-Przyciski te umożliwiają szybkie zarządzanie wieloma urządzeniami jednocześnie.
+Na dole aplikacji znajduje się przycisk:
+- **Wykryj komputery** – wyszukuje urządzenia w sieci  
 
 ---
 
 ## Styl wizualny
 
-Interfejs wykorzystuje:
-- ciemny motyw (dark mode)  
+Interfejs aplikacji wykorzystuje:
+- ciemny, gradientowy motyw (dark mode)  
 - kontrastowe kolory przycisków  
-- czytelną tabelę z wyraźnym podziałem danych  
+- czytelną tabelę  
 
-Dzięki temu aplikacja jest wygodna w użytkowaniu i nie męczy wzroku podczas dłuższej pracy.
+Zachowana jest spójność wizualna wszystkich elementów, co wpływa na profesjonalny wygląd aplikacji.
 
 ---
 
@@ -100,91 +113,99 @@ Dzięki temu aplikacja jest wygodna w użytkowaniu i nie męczy wzroku podczas d
 
 ## Podgląd zdalnego pulpitu
 
-Aplikacja umożliwia zdalny podgląd ekranu wybranego komputera znajdującego się w tej samej sieci. Funkcja ta pozwala użytkownikowi na monitorowanie pracy drugiego urządzenia w czasie rzeczywistym bez konieczności fizycznego dostępu do niego.
+Aplikacja umożliwia zdalny podgląd ekranu wybranego komputera w czasie rzeczywistym.
 
-Proces korzystania z funkcji wygląda następująco:
-- aplikacja automatycznie wykrywa dostępne urządzenia w sieci lokalnej i wyświetla je w formie listy  
-- użytkownik wybiera interesujące go urządzenie z listy  
-- po kliknięciu przycisku **„Podgląd”** nawiązywane jest połączenie  
-- na ekranie użytkownika wyświetlany jest aktualny obraz pulpitu zdalnego komputera  
+Proces działania:
+1. Wykrycie urządzeń w sieci  
+2. Wybór urządzenia  
+3. Kliknięcie **„Podgląd”**  
+4. Wyświetlenie pulpitu zdalnego  
 
-Funkcjonalność ta jest szczególnie przydatna w przypadku zdalnej pomocy technicznej, nadzoru nad pracą użytkownika lub zarządzania wieloma stanowiskami jednocześnie.
+Zastosowania:
+- pomoc techniczna  
+- monitoring pracy  
+- zarządzanie wieloma stanowiskami  
 
 ---
 
 ## Zdalne włączanie i wyłączanie urządzeń
 
-Aplikacja umożliwia zarządzanie stanem zasilania komputerów dostępnych w sieci poprzez ich zdalne włączanie oraz wyłączanie.
+### Włączanie (Wake on LAN)
 
-### Włączanie urządzeń
-
-Funkcja wykorzystuje kabel sieciowy Ethernet, który pozwala na uruchomienie komputera poprzez wysłanie specjalnego sygnału sieciowego do wybranego urządzenia.
-
-Działanie funkcji:
-- użytkownik wybiera urządzenie z listy  
-- klika przycisk **„Włącz”**  
-- aplikacja wysyła sygnał sieciowy do wskazanego komputera  
-- komputer zostaje uruchomiony, nawet jeśli był wcześniej wyłączony lub w trybie uśpienia  
-
-Rozwiązanie to eliminuje konieczność fizycznego włączania urządzenia i umożliwia szybki dostęp do niego w dowolnym momencie.
+- wybór urządzenia  
+- kliknięcie **„Włącz”**  
+- wysłanie sygnału sieciowego  
+- uruchomienie komputera  
 
 ---
 
-### Wyłączanie urządzeń
+### Wyłączanie
 
-Aplikacja pozwala również na zdalne wyłączenie wybranego komputera:
-- użytkownik wybiera urządzenie z listy  
-- klika przycisk **„Wyłącz”**  
-- do urządzenia wysyłana jest komenda zamknięcia systemu  
-- komputer zostaje bezpiecznie wyłączony  
+- wybór urządzenia  
+- kliknięcie **„Wyłącz”**  
+- wysłanie komendy zamknięcia  
+- bezpieczne wyłączenie systemu  
 
-Funkcja ta jest szczególnie przydatna w zarządzaniu energią oraz administracji wieloma komputerami w sieci.
+---
+
+## Zdalna blokada urządzenia
+
+Aplikacja umożliwia zdalne zablokowanie komputera.
+
+Proces:
+- wybór urządzenia  
+- kliknięcie **„Zablokuj”**  
+- wysłanie komendy blokady  
+- ekran zostaje zablokowany  
+
+Zastosowania:
+- zabezpieczenie stanowiska  
+- kontrola dostępu  
+- środowiska firmowe i szkolne  
 
 ---
 
 # Błędy i rozwiązywanie problemów
-
-Poniżej przedstawiono najczęstsze problemy, które mogą wystąpić podczas korzystania z aplikacji DesktopControl, wraz z ich możliwymi przyczynami oraz sposobami rozwiązania.
 
 ---
 
 ## Problem: Brak wykrytych urządzeń
 
 **Możliwe przyczyny:**
-- komputer nie jest podłączony do tej samej sieci  
-- brak połączenia sieciowego  
+- brak tej samej sieci  
+- brak połączenia  
 
 **Rozwiązanie:**
-- upewnij się, że oba komputery znajdują się w tej samej sieci lokalnej (LAN)  
-- sprawdź połączenie z Internetem / routerem  
-- kliknij ponownie przycisk **„Wykryj komputery”**  
+- sprawdź sieć LAN  
+- sprawdź połączenie z routerem  
+- kliknij ponownie **„Wykryj komputery”**  
 
 ---
 
 ## Problem: Nie działa podgląd pulpitu
 
 **Możliwe przyczyny:**
-- blokada połączenia przez zaporę systemową  
-- brak komunikacji między urządzeniami  
+- firewall blokuje połączenie  
+- brak komunikacji  
 
 **Rozwiązanie:**
-- upewnij się, że oba komputery są w tej samej sieci lokalnej  
-- wyłącz zaporę systemową (firewall) lub dodaj wyjątek dla aplikacji  
-- sprawdź, czy urządzenie docelowe jest włączone i dostępne  
+- sprawdź sieć lokalną  
+- wyłącz firewall lub dodaj wyjątek  
+- sprawdź dostępność urządzenia  
 
 ---
 
 ## Problem: Nie można włączyć komputera (Wake on LAN)
 
 **Możliwe przyczyny:**
-- urządzenie nie obsługuje Wake on LAN  
-- funkcja jest wyłączona w BIOS/UEFI  
-- błędna konfiguracja sieci  
+- brak wsparcia WOL  
+- wyłączone w BIOS/UEFI  
+- błędna konfiguracja  
 
 **Rozwiązanie:**
-- sprawdź, czy Wake on LAN jest włączony w BIOS/UEFI  
-- upewnij się, że karta sieciowa obsługuje tę funkcję  
-- sprawdź poprawność adresu MAC urządzenia  
+- włącz WOL w BIOS/UEFI  
+- sprawdź kartę sieciową  
+- zweryfikuj adres MAC  
 
 ---
 
@@ -192,9 +213,11 @@ Poniżej przedstawiono najczęstsze problemy, które mogą wystąpić podczas ko
 
 **Możliwe przyczyny:**
 - brak uprawnień  
-- brak połączenia z urządzeniem  
+- brak połączenia  
 
 **Rozwiązanie:**
-- upewnij się, że komputer docelowy jest dostępny w sieci  
-- sprawdź połączenie sieciowe  
-- spróbuj ponownie wykonać operację  
+- sprawdź dostępność urządzenia  
+- sprawdź sieć  
+- spróbuj ponownie  
+
+---
