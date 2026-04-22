@@ -316,6 +316,14 @@ namespace DesktopControl
 			window.Show();
 		}
 
+		/*********************
+		nazwa metody: Btn_Lock
+		opis: Obsługuje kliknięcie przycisku blokady. Wysyła do wybranego komputera komendę "lock" lub "unlock" przez TCP (port 6000), a następnie aktualizuje jego stan oraz komunikat statusu.
+		parametry: 
+		    sender – źródło zdarzenia (przycisk)
+		    e – dane zdarzenia RoutedEventArgs
+		zwracany typ i opis: void (metoda asynchroniczna obsługująca zdarzenie UI)
+		*********************/
         private async void Btn_Lock(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
@@ -389,10 +397,5 @@ namespace DesktopControl
 		{
 			throw new NotImplementedException();
 		}
-
-        private async void BtnLock_Click(object sender, RoutedEventArgs e)
-        {
-           
-        }
     }
 }
