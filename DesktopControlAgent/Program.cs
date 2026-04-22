@@ -1,7 +1,3 @@
-﻿/*********************
-Agent - zdalny podgląd + komendy + lock screen (WinForms)
-*********************/
-
 using System;
 using System.Drawing;
 using System.IO;
@@ -11,10 +7,18 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
+/*********************
+nazwa klasy: Program
+opis: Główna klasa aplikacji. Uruchamia serwery sieciowe oraz zarządza blokadą ekranu.
+*********************/
 class Program
 {
     static Form? lockForm;
 
+    /*********************
+    nazwa metody: Main
+    opis: Punkt startowy aplikacji. Uruchamia w osobnych wątkach ScreenServer oraz CommandServer.
+    *********************/
     static void Main()
     {
         Console.WriteLine("Start agenta...");
@@ -27,8 +31,9 @@ class Program
     }
 
     /*********************
-	SCREEN SERVER
-	*********************/
+    nazwa metody: ScreenServer
+    opis: Serwer TCP wysyłający obraz ekranu do klienta (port 5000). Wysyła cyklicznie zrzuty ekranu w formacie JPEG.
+    *********************/
     static void ScreenServer()
     {
         TcpListener server = new TcpListener(IPAddress.Any, 5000);
@@ -71,8 +76,9 @@ class Program
     }
 
     /*********************
-	COMMAND SERVER
-	*********************/
+    nazwa metody: CommandServer
+    opis: Serwer TCP odbierający komendy (port 6000). Obsługuje komendy: shutdown, lock, unlock.
+    *********************/
     static void CommandServer()
     {
         TcpListener server = new TcpListener(IPAddress.Any, 6000);
@@ -119,8 +125,9 @@ class Program
     }
 
     /*********************
-	SCREEN CAPTURE
-	*********************/
+    nazwa metody: Capture
+    opis: Wykonuje zrzut ekranu i zwraca go jako Bitmap.
+    *********************/
     static Bitmap Capture()
     {
         int w = 1920;
@@ -137,8 +144,9 @@ class Program
     }
 
     /*********************
-	LOCK SCREEN
-	*********************/
+    nazwa metody: ShowLockScreen
+    opis: Wyświetla pełnoekranową blokadę komputera z komunikatem dla użytkownika. Ukrywa kursor.
+    *********************/
     static void ShowLockScreen()
     {
         if (lockForm != null)
@@ -173,19 +181,20 @@ class Program
     }
 
     /*********************
-	UNLOCK
-	*********************/
+    nazwa metody: HideLockScreen
+    opis: Zamyka ekran blokady i przywraca widoczność kursora.
+    *********************/
     static void HideLockScreen()
-{
-	if (lockForm != null)
-	{
-		lockForm.Invoke(new Action(() =>
-		{
-			Cursor.Show();
-			lockForm.Close();
-		}));
+    {
+        if (lockForm != null)
+        {
+            lockForm.Invoke(new Action(() =>
+            {
+                Cursor.Show();
+                lockForm.Close();
+            }));
 
-		lockForm = null;
-	}
-}
+            lockForm = null;
+        }
+    }
 }
